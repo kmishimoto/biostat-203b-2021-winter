@@ -42,8 +42,8 @@ sessionInfo()
 
 1. This exercise (and later in this course) uses the [MIMIC-IV data](https://mimic-iv.mit.edu), a freely accessible critical care database developed by the MIT Lab for Computational Physiology. Follow the instructions at <https://mimic-iv.mit.edu/docs/access/> to (1) complete the CITI `Data or Specimens Only Research` course and (2) obtain the PhysioNet credential for using the MIMIC-IV data. Display the verification links to your completion report and completion certificate here. (Hint: The CITI training takes a couple hours and the PhysioNet credentialing takes a couple days; do not leave it to the last minute.)
 
-[CITI completion report](link)
-[CITI completion certificate](link)
+**Solution**: ** DON'T FORGET THE LINKS!!!**
+Here is my [CITI completion report](link) and my [CITI completion certificate](link)
 
 2. The `/usr/203b-data/mimic-iv/` folder on teaching server contains data sets from MIMIC-IV. Refer to <https://mimic-iv.mit.edu/docs/datasets/> for details of data files.  
     ```{bash}
@@ -54,6 +54,13 @@ Please, do **not** put these data files into Git; they are big. Do **not** copy 
     Use Bash commands to answer following questions.
 
 3. Display the contents in the folders `core`, `hosp`, `icu`. What are the functionalities of the bash commands `zcat`, `zless`, `zmore`, and `zgrep`? 
+
+**Solution**:
+Contents of the folder `core`:
+```{bash}
+    ls -l /usr/203b-data/mimic-iv/core
+```
+
 
 4. What's the output of following bash script?
     ```{bash, eval=F}
@@ -99,4 +106,19 @@ Explain the output. Explain the meaning of `"$1"`, `"$2"`, and `"$3"` in this sh
 ### Q4. More fun with Linux
 
 Try these commands in Bash and interpret the results: `cal`, `cal 2021`, `cal 9 1752` (anything unusual?), `date`, `hostname`, `arch`, `uname -a`, `uptime`, `who am i`, `who`, `w`, `id`, `last | head`, `echo {con,pre}{sent,fer}{s,ed}`, `time sleep 5`, `history | tail`.
+
+**Solution**: `cal` displays the calendar of the current month:
+```{bash}
+cal
+```
+
+`cal 2021` displays the calendar of the year specified (2021 in this case):
+```{bash}
+cal 2021
+```
+
+`cal 9 1752` displays the calendar for September 1752.
+```{bash}
+cal 9 1752
+```
 
