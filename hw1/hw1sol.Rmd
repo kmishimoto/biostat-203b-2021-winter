@@ -42,14 +42,16 @@ sessionInfo()
 
 1. This exercise (and later in this course) uses the [MIMIC-IV data](https://mimic-iv.mit.edu), a freely accessible critical care database developed by the MIT Lab for Computational Physiology. Follow the instructions at <https://mimic-iv.mit.edu/docs/access/> to (1) complete the CITI `Data or Specimens Only Research` course and (2) obtain the PhysioNet credential for using the MIMIC-IV data. Display the verification links to your completion report and completion certificate here. (Hint: The CITI training takes a couple hours and the PhysioNet credentialing takes a couple days; do not leave it to the last minute.)
 
-**Solution**: ** DON'T FORGET THE LINKS!!!**
-Here is my [CITI completion report](link) and my [CITI completion certificate](link)
+**Solution**:
+Here is my [CITI completion report](https://www.citiprogram.org/verify/?kfadb1bd0-bb4e-422c-acf0-c1d3e00b6d0f-40369474) and my [CITI completion certificate](https://www.citiprogram.org/verify/?wdb8a1b20-f961-46fc-8a5e-2643dfd6abad-40369474)
 
 2. The `/usr/203b-data/mimic-iv/` folder on teaching server contains data sets from MIMIC-IV. Refer to <https://mimic-iv.mit.edu/docs/datasets/> for details of data files.  
     ```{bash}
     ls -l /usr/203b-data/mimic-iv
     ```
 Please, do **not** put these data files into Git; they are big. Do **not** copy them into your directory. Do **not** decompress the gz data files. These create unnecessary big files on storage and are not big data friendly practices. Just read from the data folder `/usr/203b-data/mimic-iv` directly in following exercises. 
+
+**Solution**: I did not put the data files into Git. I did not copy them into my directory, and I did not decompress the gz files.
 
     Use Bash commands to answer following questions.
 
@@ -58,20 +60,129 @@ Please, do **not** put these data files into Git; they are big. Do **not** copy 
 **Solution**:
 Contents of the folder `core`:
 ```{bash}
-    ls -l /usr/203b-data/mimic-iv/core
+ls -l /usr/203b-data/mimic-iv/core
+```
+
+Contents of the folder `hosp`:
+```{bash}
+ls -l /usr/203b-data/mimic-iv/hosp
+```
+
+Contents of the folder `icu`:
+```{bash}
+ls -l /usr/203b-data/mimic-iv/hosp
 ```
 
 
-4. What's the output of following bash script?
-    ```{bash, eval=F}
-    for datafile in /usr/203b-data/mimic-iv/core/*.gz
-      do
-        ls -l $datafile
-      done
-    ```
-Display the number of lines in each data file using a similar loop.
+Functionality of the following bash commands were found by looking at the output of the specified bash commands whose outputs are suppressed here since they are quite long. 
 
-4. Display the first few lines of `admissions.csv.gz`. How many rows are in this data file? How many unique patients (identified by `subject_id`) are in this data file? What are the possible values taken by each of the variable `admission_type`, `admission_location`, `insurance`, `language`, `marital_status`, and `ethnicity`? Also report the count for each unique value of these variables. (Hint: combine Linux commands `zcat`, `head`/`tail`, `awk`, `uniq`, `wc`, and so on.)
+
+```{bash, eval=F}
+man zcat
+```
+The functionality of `zcat` is similar to `cat` in that it prints the content of a file or a list of files, but more specifically `zcat` prints the content of zipped, or compressed, files. The manual on `zcat` also says that `zcat` is identical to `gunzip -c`. 
+
+```{bash, eval=F}
+man zless
+```
+Functionality of the bash command `zless` is similar to `less` except that it is used for looking through compressed files. `zless` allows us to browse through a compressed text file where we can scroll both up and down through the text. 
+
+```{bash, eval=F}
+man zmore
+```
+Functionality of the bash command `zmore` is similar to `more` except that it is used on compressed files. `zmore` allows us to browse through a compressed text file, but we can only scroll down and not up. 
+
+```{bash, eval=F}
+man zgrep
+```
+Functionality of `zgrep` is basically the same as `grep` but for compressed files. `zgrep` allows us to search a compressed file for a regular expression. Additionally, `zgrep` decompresses the compressed file specified and then feeds it into the `grep` command.
+
+
+4. What's the output of following bash script?
+
+**Solution**:
+
+Bash script + output:
+```{bash}
+for datafile in /usr/203b-data/mimic-iv/core/*.gz
+  do
+    ls -l $datafile
+  done
+```
+The above output is a detailed list of all the files in the folder `core` that have the extension `.gz`.
+
+Display the number of lines in each data file using a similar loop (in the line following the file name is the number of lines in that file):
+
+```{bash}
+for datafile in /usr/203b-data/mimic-iv/core/*.gz
+  do
+    ls $datafile
+    zcat $datafile | wc -l
+  done
+```
+
+
+
+5. Display the first few lines of `admissions.csv.gz`. How many rows are in this data file? How many unique patients (identified by `subject_id`) are in this data file? What are the possible values taken by each of the variable `admission_type`, `admission_location`, `insurance`, `language`, `marital_status`, and `ethnicity`? Also report the count for each unique value of these variables. (Hint: combine Linux commands `zcat`, `head`/`tail`, `awk`, `uniq`, `wc`, and so on.)
+
+**Solution**:
+The first 10 lines of `admissions.csv.gz`:
+```{bash}
+zcat /usr/203b-data/mimic-iv/core/admissions.csv.gz | head
+```
+
+Finding the number of lines in this data file
+```{bash}
+zcat /usr/203b-data/mimic-iv/core/admissions.csv.gz | wc -l
+```
+There are 524521 rows in this data file.
+
+Finding number of unique patients in this file using `subject_id` (first listed variable):
+```{bash}
+zcat /usr/203b-data/mimic-iv/core/admissions.csv.gz | tail -524520 | awk -F, '{ print $1 }' | sort | uniq | wc -l
+```
+There are 257,366 unique patients in this file.
+
+In the next section, I find the unique values taken by specified variables as well as the number of occurrences of those unique values. For each specified variable, I exclude the first line in the counting because that is the line with variable names. In the output of the bash commands, the unique values of the variable are listed after the number of occurrences for each unique value.
+
+Finding possible values taken by the variable `admission_type` (which is the 6th variable) as well as the number of occurrences for each unique value:
+```{bash}
+zcat /usr/203b-data/mimic-iv/core/admissions.csv.gz | tail -524520 | awk -F, '{ print $6 }' | sort | uniq -c
+```
+
+Finding possible values taken by the variable `admission_location` (which is the 7th variable) as well as the number of occurrences for each unique value:
+```{bash}
+zcat /usr/203b-data/mimic-iv/core/admissions.csv.gz | tail -524520 | awk -F, '{ print $7 }' | sort | uniq -c
+```
+
+
+Finding possible values taken by the variable `insurance` (which is the 9th variable) as well as the number of occurrences for each unique value:
+```{bash}
+zcat /usr/203b-data/mimic-iv/core/admissions.csv.gz | tail -524520 | awk -F, '{ print $9 }' | sort | uniq -c
+```
+
+
+Finding possible values taken by the variable `language` (which is the 10th variable) as well as the number of occurrences for each unique value:
+```{bash}
+zcat /usr/203b-data/mimic-iv/core/admissions.csv.gz | tail -524520 | awk -F, '{ print $10 }' | sort | uniq -c
+```
+
+
+Finding possible values taken by the variable `marital_status` (which is the 11th variable) as well as the number of occurrences for each unique value:
+```{bash}
+zcat /usr/203b-data/mimic-iv/core/admissions.csv.gz | tail -524520 | awk -F, '{ print $11 }' | sort | uniq -c
+```
+
+
+Finding possible values taken by the variable `ethnicity` (which is the 12th variable) as well as the number of occurrences for each unique value:
+```{bash}
+zcat /usr/203b-data/mimic-iv/core/admissions.csv.gz | tail -524520 | awk -F, '{ print $12 }' | sort | uniq -c
+```
+
+
+
+
+
 
 ## Q3. Who's popular in Price and Prejudice
 
@@ -121,4 +232,19 @@ cal 2021
 ```{bash}
 cal 9 1752
 ```
+Something unusual is that the 3rd to the 13th are missing from the above calendar.
 
+`date` displays the current day of the week, the date, and the time
+```{bash}
+date
+```
+
+`hostname` displays the name of the "host" which in this case is the name of the teaching server which we are currently using.
+```{bash}
+hostname
+```
+
+`arch` displays "x86_64" which is a description that is attached to the platform we are using (64-bit redhat linux gnu)
+```{bash}
+arch
+```
