@@ -530,7 +530,7 @@ summary {
 ## 383221
 ## /usr/203b-data/mimic-iv/core/transfers.csv.gz
 ## 2192964</code></pre>
-<ol start="4" style="list-style-type: decimal">
+<ol start="5" style="list-style-type: decimal">
 <li>Display the first few lines of <code>admissions.csv.gz</code>. How many rows are in this data file? How many unique patients (identified by <code>subject_id</code>) are in this data file? What are the possible values taken by each of the variable <code>admission_type</code>, <code>admission_location</code>, <code>insurance</code>, <code>language</code>, <code>marital_status</code>, and <code>ethnicity</code>? Also report the count for each unique value of these variables. (Hint: combine Linux commands <code>zcat</code>, <code>head</code>/<code>tail</code>, <code>awk</code>, <code>uniq</code>, <code>wc</code>, and so on.)</li>
 </ol>
 <p><strong>Solution</strong>: The first 10 lines of <code>admissions.csv.gz</code>:</p>
@@ -684,13 +684,16 @@ head -n &quot;$2&quot; &quot;$1&quot; | tail -n &quot;$3&quot;</code></pre>
 <p>Something unusual is that the 3rd to the 13th are missing from the above calendar.</p>
 <p><code>date</code> displays the current day of the week, the date, and the time</p>
 <pre class="bash"><code>date</code></pre>
-<pre><code>## Sun Jan 17 01:52:10 UTC 2021</code></pre>
+<pre><code>## Tue Jan 19 23:18:40 UTC 2021</code></pre>
 <p><code>hostname</code> displays the name of the “host” which in this case is the name of the teaching server which we are currently using.</p>
 <pre class="bash"><code>hostname</code></pre>
 <pre><code>## ucla-biostat-203b</code></pre>
 <p><code>arch</code> displays “x86_64” which is a description that is attached to the platform we are using (64-bit redhat linux gnu)</p>
 <pre class="bash"><code>arch</code></pre>
 <pre><code>## x86_64</code></pre>
+<p><code>uname -a</code></p>
+<pre class="bash"><code>uname -a</code></pre>
+<pre><code>## Linux ucla-biostat-203b 3.10.0-1160.6.1.el7.x86_64 #1 SMP Tue Nov 17 13:59:11 UTC 2020 x86_64 x86_64 x86_64 GNU/Linux</code></pre>
 </div>
 </div>
 

@@ -248,3 +248,9 @@ hostname
 ```{bash}
 arch
 ```
+
+`uname -a `
+
+```{bash}
+uname -a
+```
