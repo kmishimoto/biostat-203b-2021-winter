@@ -433,7 +433,8 @@ summary {
 <ol style="list-style-type: decimal">
 <li>This exercise (and later in this course) uses the <a href="https://mimic-iv.mit.edu">MIMIC-IV data</a>, a freely accessible critical care database developed by the MIT Lab for Computational Physiology. Follow the instructions at <a href="https://mimic-iv.mit.edu/docs/access/" class="uri">https://mimic-iv.mit.edu/docs/access/</a> to (1) complete the CITI <code>Data or Specimens Only Research</code> course and (2) obtain the PhysioNet credential for using the MIMIC-IV data. Display the verification links to your completion report and completion certificate here. (Hint: The CITI training takes a couple hours and the PhysioNet credentialing takes a couple days; do not leave it to the last minute.)</li>
 </ol>
-<p><strong>Solution</strong>: Here is my <a href="https://www.citiprogram.org/verify/?kfadb1bd0-bb4e-422c-acf0-c1d3e00b6d0f-40369474">CITI completion report</a> and my <a href="https://www.citiprogram.org/verify/?wdb8a1b20-f961-46fc-8a5e-2643dfd6abad-40369474">CITI completion certificate</a></p>
+<p><strong>Solution</strong>:</p>
+<p>I have obtained the PhysioNet credential for using the MIMIC-IV data. Here is my <a href="https://www.citiprogram.org/verify/?kfadb1bd0-bb4e-422c-acf0-c1d3e00b6d0f-40369474">CITI completion report</a> and my <a href="https://www.citiprogram.org/verify/?wdb8a1b20-f961-46fc-8a5e-2643dfd6abad-40369474">CITI completion certificate</a></p>
 <ol start="2" style="list-style-type: decimal">
 <li><p>The <code>/usr/203b-data/mimic-iv/</code> folder on teaching server contains data sets from MIMIC-IV. Refer to <a href="https://mimic-iv.mit.edu/docs/datasets/" class="uri">https://mimic-iv.mit.edu/docs/datasets/</a> for details of data files.</p>
 <pre class="bash"><code>ls -l /usr/203b-data/mimic-iv</code></pre>
@@ -606,25 +607,55 @@ summary {
 ##   19419 UNKNOWN
 ##  338044 WHITE</code></pre>
 </div>
-<div id="q3.-whos-popular-in-price-and-prejudice" class="section level2">
-<h2>Q3. Who’s popular in Price and Prejudice</h2>
+<div id="q3.-whos-popular-in-pride-and-prejudice" class="section level2">
+<h2>Q3. Who’s popular in Pride and Prejudice</h2>
 <ol style="list-style-type: decimal">
 <li><p>You and your friend just have finished reading <em>Pride and Prejudice</em> by Jane Austen. Among the four main characters in the book, Elizabeth, Jane, Lydia, and Darcy, your friend thinks that Darcy was the most mentioned. You, however, are certain it was Elizabeth. Obtain the full text of the novel from <a href="http://www.gutenberg.org/cache/epub/42671/pg42671.txt" class="uri">http://www.gutenberg.org/cache/epub/42671/pg42671.txt</a> and save to your local folder.</p>
 <pre class="bash"><code>curl http://www.gutenberg.org/cache/epub/42671/pg42671.txt &gt; pride_and_prejudice.txt</code></pre>
 <p>Do <strong>not</strong> put this text file <code>pride_and_prejudice.txt</code> in Git. Using a <code>for</code> loop, how would you tabulate the number of times each of the four characters is mentioned?</p></li>
+</ol>
+<p><strong>Solution:</strong></p>
+<pre class="bash"><code>for i in &quot;Elizabeth&quot; &quot;Jane&quot; &quot;Lydia&quot; &quot;Darcy&quot;;
+do
+  grep -o $i pride_and_prejudice.txt | wc -l
+  done</code></pre>
+<pre><code>## 634
+## 294
+## 170
+## 417</code></pre>
+<p>Elizabeth is mentioned 634 times. Jane is mentioned 294 times. Lydia is mentioned 170 times. Darcy is mentioned 417 times. Elizabeth is mentioned the most often out of these four characters.</p>
+<ol start="2" style="list-style-type: decimal">
 <li><p>What’s the difference between the following two commands?</p>
 <pre class="bash"><code>echo &#39;hello, world&#39; &gt; test1.txt</code></pre>
 <p>and</p>
 <pre class="bash"><code>echo &#39;hello, world&#39; &gt;&gt; test2.txt</code></pre></li>
+</ol>
+<p><strong>Solution:</strong></p>
+<p>The first command <code>echo &#39;hello, world&#39; &gt; test1.txt</code> writes the text <code>hello, world</code> to the text file <code>test1.txt</code>. If there was anything already written in this <code>test1.txt</code> file, then the text <code>hello, world</code> would overwrite whatever was originally written in that file. The second command, <code>echo &#39;hello, world&#39; &gt;&gt; test2.txt</code> adds the text <code>hello, world</code> to the text file <code>test2.txt</code>. If there was anything already written in this file, the text <code>hello, world</code> would be added to the end of the file, without deleting what was originally in that text file.</p>
+<ol start="3" style="list-style-type: decimal">
 <li><p>Using your favorite text editor (e.g., <code>vi</code>), type the following and save the file as <code>middle.sh</code>:</p>
 <pre class="bash"><code>#!/bin/sh
 # Select lines from the middle of a file.
 # Usage: bash middle.sh filename end_line num_lines
-head -n &quot;$2&quot; &quot;$1&quot; | tail -n &quot;$3&quot;</code></pre>
-<p>Using <code>chmod</code> make the file executable by the owner, and run</p>
-<pre class="bash"><code>./middle.sh pride_and_prejudice.txt 20 5</code></pre>
-<p>Explain the output. Explain the meaning of <code>&quot;$1&quot;</code>, <code>&quot;$2&quot;</code>, and <code>&quot;$3&quot;</code> in this shell script. Why do we need the first line of the shell script?</p></li>
+head -n &quot;$2&quot; &quot;$1&quot; | tail -n &quot;$3&quot;</code></pre></li>
 </ol>
+<p>Using <code>chmod</code> make the file executable by the owner, and run</p>
+<pre><code>```bash
+./middle.sh pride_and_prejudice.txt 20 5
+```</code></pre>
+<p>Explain the output. Explain the meaning of <code>&quot;$1&quot;</code>, <code>&quot;$2&quot;</code>, and <code>&quot;$3&quot;</code> in this shell script. Why do we need the first line of the shell script?</p>
+<p><strong>Solution:</strong></p>
+<p>First creating the file <code>middle.sh</code> and opening the text editor to save the text file as specified above. Then changing the permissions on the file to make it executable:</p>
+<pre class="bash"><code>touch middle.sh
+vi middle.sh
+chmod 770 middle.sh</code></pre>
+<pre class="bash"><code>./middle.sh pride_and_prejudice.txt 20 5</code></pre>
+<pre><code>## 
+## Author: Jane Austen
+## 
+## Editor: R. W. (Robert William) Chapman
+## </code></pre>
+<p>The output of the above command are lines 16 through 20 of the Pride and Prejudice text file. In the shell script, <code>$1</code> indicates the first element or argument written after calling the shell script, in this case it is the name of the file that we want to examine, <code>pride_and_prejudice.txt</code>. The <code>$2</code> is the second argument written after calling the shell script. This is the number that indicates how many of the first lines we want to print from the file specified (this shouldn’t be mistaken for the output of this shell script, though because the tail command that follows determines the output); in our case <code>$2</code> refers to the <code>20</code>, meaning we wanted the first 20 lines of the <code>pride_and_prejudice.txt</code> file. The <code>$3</code> is the third argument written after calling the shell script. In our case, this refers to the <code>5</code> in the above code. This <code>$3</code> is the number of lines that we want to read from the end of the previous <code>head</code> command. The first line of the shell script specifies that we are using the <code>sh</code> shell in order to run this shell script.</p>
 <div id="q4.-more-fun-with-linux" class="section level3">
 <h3>Q4. More fun with Linux</h3>
 <p>Try these commands in Bash and interpret the results: <code>cal</code>, <code>cal 2021</code>, <code>cal 9 1752</code> (anything unusual?), <code>date</code>, <code>hostname</code>, <code>arch</code>, <code>uname -a</code>, <code>uptime</code>, <code>who am i</code>, <code>who</code>, <code>w</code>, <code>id</code>, <code>last | head</code>, <code>echo {con,pre}{sent,fer}{s,ed}</code>, <code>time sleep 5</code>, <code>history | tail</code>.</p>
@@ -684,7 +715,7 @@ head -n &quot;$2&quot; &quot;$1&quot; | tail -n &quot;$3&quot;</code></pre>
 <p>Something unusual is that the 3rd to the 13th are missing from the above calendar.</p>
 <p><code>date</code> displays the current day of the week, the date, and the time</p>
 <pre class="bash"><code>date</code></pre>
-<pre><code>## Tue Jan 19 23:18:40 UTC 2021</code></pre>
+<pre><code>## Thu Jan 21 04:57:53 UTC 2021</code></pre>
 <p><code>hostname</code> displays the name of the “host” which in this case is the name of the teaching server which we are currently using.</p>
 <pre class="bash"><code>hostname</code></pre>
 <pre><code>## ucla-biostat-203b</code></pre>

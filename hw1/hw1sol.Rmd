@@ -43,7 +43,8 @@ sessionInfo()
 1. This exercise (and later in this course) uses the [MIMIC-IV data](https://mimic-iv.mit.edu), a freely accessible critical care database developed by the MIT Lab for Computational Physiology. Follow the instructions at <https://mimic-iv.mit.edu/docs/access/> to (1) complete the CITI `Data or Specimens Only Research` course and (2) obtain the PhysioNet credential for using the MIMIC-IV data. Display the verification links to your completion report and completion certificate here. (Hint: The CITI training takes a couple hours and the PhysioNet credentialing takes a couple days; do not leave it to the last minute.)
 
 **Solution**:
-Here is my [CITI completion report](https://www.citiprogram.org/verify/?kfadb1bd0-bb4e-422c-acf0-c1d3e00b6d0f-40369474) and my [CITI completion certificate](https://www.citiprogram.org/verify/?wdb8a1b20-f961-46fc-8a5e-2643dfd6abad-40369474)
+
+I have obtained the PhysioNet credential for using the MIMIC-IV data. Here is my [CITI completion report](https://www.citiprogram.org/verify/?kfadb1bd0-bb4e-422c-acf0-c1d3e00b6d0f-40369474) and my [CITI completion certificate](https://www.citiprogram.org/verify/?wdb8a1b20-f961-46fc-8a5e-2643dfd6abad-40369474)
 
 2. The `/usr/203b-data/mimic-iv/` folder on teaching server contains data sets from MIMIC-IV. Refer to <https://mimic-iv.mit.edu/docs/datasets/> for details of data files.  
     ```{bash}
@@ -184,13 +185,24 @@ zcat /usr/203b-data/mimic-iv/core/admissions.csv.gz | tail -524520 | awk -F, '{ 
 
 
 
-## Q3. Who's popular in Price and Prejudice
+## Q3. Who's popular in Pride and Prejudice
 
 1. You and your friend just have finished reading *Pride and Prejudice* by Jane Austen. Among the four main characters in the book, Elizabeth, Jane, Lydia, and Darcy, your friend thinks that Darcy was the most mentioned. You, however, are certain it was Elizabeth. Obtain the full text of the novel from <http://www.gutenberg.org/cache/epub/42671/pg42671.txt> and save to your local folder. 
     ```{bash, eval=FALSE}
     curl http://www.gutenberg.org/cache/epub/42671/pg42671.txt > pride_and_prejudice.txt
     ```
 Do **not** put this text file `pride_and_prejudice.txt` in Git. Using a `for` loop, how would you tabulate the number of times each of the four characters is mentioned?
+
+**Solution:**
+```{bash}
+for i in "Elizabeth" "Jane" "Lydia" "Darcy";
+do
+  grep -o $i pride_and_prejudice.txt | wc -l
+  done
+```
+Elizabeth is mentioned 634 times. Jane is mentioned 294 times. Lydia is mentioned 170 times. Darcy is mentioned 417 times. Elizabeth is mentioned the most often out of these four characters.
+
+
 
 2. What's the difference between the following two commands?
     ```{bash eval=FALSE}
@@ -201,6 +213,10 @@ Do **not** put this text file `pride_and_prejudice.txt` in Git. Using a `for` lo
     echo 'hello, world' >> test2.txt
     ```
 
+**Solution:**
+
+The first command `echo 'hello, world' > test1.txt` writes the text `hello, world` to the text file `test1.txt`. If there was anything already written in this `test1.txt` file, then the text `hello, world` would overwrite whatever was originally written in that file. The second command, `echo 'hello, world' >> test2.txt` adds the text `hello, world` to the text file `test2.txt`. If there was anything already written in this file, the text `hello, world` would be added to the end of the file, without deleting what was originally in that text file. 
+
 3. Using your favorite text editor (e.g., `vi`), type the following and save the file as `middle.sh`:
     ```{bash eval=FALSE}
     #!/bin/sh
@@ -208,11 +224,26 @@ Do **not** put this text file `pride_and_prejudice.txt` in Git. Using a `for` lo
     # Usage: bash middle.sh filename end_line num_lines
     head -n "$2" "$1" | tail -n "$3"
     ```
+
 Using `chmod` make the file executable by the owner, and run 
     ```{bash eval=FALSE}
     ./middle.sh pride_and_prejudice.txt 20 5
     ```
 Explain the output. Explain the meaning of `"$1"`, `"$2"`, and `"$3"` in this shell script. Why do we need the first line of the shell script?
+
+**Solution:**
+
+First creating the file `middle.sh` and opening the text editor to save the text file as specified above. Then changing the permissions on the file to make it executable:
+```{bash, eval=FALSE}
+touch middle.sh
+vi middle.sh
+chmod 770 middle.sh
+```
+
+```{bash}
+./middle.sh pride_and_prejudice.txt 20 5
+```
+The output of the above command are lines 16 through 20 of the Pride and Prejudice text file. In the shell script, `$1` indicates the first element or argument written after calling the shell script, in this case it is the name of the file that we want to examine, `pride_and_prejudice.txt`. The `$2` is the second argument written after calling the shell script. This is the number that indicates how many of the first lines we want to print from the file specified (this shouldn't be mistaken for the output of this shell script, though because the tail command that follows determines the output); in our case `$2` refers to the `20`, meaning we wanted the first 20 lines of the `pride_and_prejudice.txt` file. The `$3` is the third argument written after calling the shell script. In our case, this refers to the `5` in the above code. This `$3` is the number of lines that we want to read from the end of the previous `head` command. The first line of the shell script specifies that we are using the `sh` shell in order to run this shell script. 
 
 ### Q4. More fun with Linux
 
