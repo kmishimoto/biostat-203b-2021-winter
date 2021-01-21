@@ -249,7 +249,9 @@ The output of the above command are lines 16 through 20 of the Pride and Prejudi
 
 Try these commands in Bash and interpret the results: `cal`, `cal 2021`, `cal 9 1752` (anything unusual?), `date`, `hostname`, `arch`, `uname -a`, `uptime`, `who am i`, `who`, `w`, `id`, `last | head`, `echo {con,pre}{sent,fer}{s,ed}`, `time sleep 5`, `history | tail`.
 
-**Solution**: `cal` displays the calendar of the current month:
+**Solution**: 
+
+`cal` displays the calendar of the current month:
 ```{bash}
 cal
 ```
@@ -275,13 +277,58 @@ date
 hostname
 ```
 
-`arch` displays "x86_64" which is a description that is attached to the platform we are using (64-bit redhat linux gnu)
+`arch` displays the machine hardware name. 
 ```{bash}
 arch
 ```
 
-`uname -a `
+`uname -a ` prints system information, the `-a` option means we want to see all system information. This system information includes the kernel name, network node hostname, the kernel release, the kernel version, machine hardware name (should be same as output from the `arch` command), processor type, hardware platform, and the operating system.
 
 ```{bash}
 uname -a
+```
+
+`uptime` displays the current time in UTC, how long the system has been running, how many users are currently logged in, and the system load averages for the past 1, 5, and 15 minutes (this information is copied from the `man uptime` command).
+```{bash}
+uptime
+```
+
+`who am i` displays the current user's name. 
+```{bash}
+whoami
+```
+
+`who` display the users currently logged in as well as the time they logged in. 
+```{bash}
+who
+```
+
+`w` shows who is currently logged in, with some more details compared to the `who` command. `w` also shows what the idle time, JCPU, PCPU, and the current process they are doing. 
+```{bash}
+w
+```
+
+`id` outputs id information for the current user. Specifically, it outputs the user id (number and name) and the group id (number and name)
+```{bash}
+id
+```
+
+`last | head` shows the last 10 users that logged in as well as when they logged in and when they logged off (or if they are still logged in). 
+```{bash}
+last | head
+```
+
+`echo {con,pre}{sent,fer}{s,ed}` prints all possible combinations that can be formed by taking one element from each bracketed group and pasting them together.
+```{bash}
+echo {con,pre}{sent,fer}{s,ed}
+```
+
+`time sleep 5` combines two commands. `time` shows the time it takes to complete a command (time measured in elapsed time, not CPU time). `sleep` delays the execution of a command for a number of seconds. `time sleep 5` outputs the time it takes to execute a the command `sleep 5` which delays the execution of the command by 5 seconds. 
+```{bash}
+time sleep 5
+```
+
+`history | tail` outputs the last 10 commands that were most recently used. 
+```{bash}
+history | tail
 ```

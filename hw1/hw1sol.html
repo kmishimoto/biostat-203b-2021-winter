@@ -659,7 +659,8 @@ chmod 770 middle.sh</code></pre>
 <div id="q4.-more-fun-with-linux" class="section level3">
 <h3>Q4. More fun with Linux</h3>
 <p>Try these commands in Bash and interpret the results: <code>cal</code>, <code>cal 2021</code>, <code>cal 9 1752</code> (anything unusual?), <code>date</code>, <code>hostname</code>, <code>arch</code>, <code>uname -a</code>, <code>uptime</code>, <code>who am i</code>, <code>who</code>, <code>w</code>, <code>id</code>, <code>last | head</code>, <code>echo {con,pre}{sent,fer}{s,ed}</code>, <code>time sleep 5</code>, <code>history | tail</code>.</p>
-<p><strong>Solution</strong>: <code>cal</code> displays the calendar of the current month:</p>
+<p><strong>Solution</strong>:</p>
+<p><code>cal</code> displays the calendar of the current month:</p>
 <pre class="bash"><code>cal</code></pre>
 <pre><code>##     January 2021    
 ## Su Mo Tu We Th Fr Sa
@@ -715,16 +716,58 @@ chmod 770 middle.sh</code></pre>
 <p>Something unusual is that the 3rd to the 13th are missing from the above calendar.</p>
 <p><code>date</code> displays the current day of the week, the date, and the time</p>
 <pre class="bash"><code>date</code></pre>
-<pre><code>## Thu Jan 21 04:57:53 UTC 2021</code></pre>
+<pre><code>## Thu Jan 21 05:30:05 UTC 2021</code></pre>
 <p><code>hostname</code> displays the name of the “host” which in this case is the name of the teaching server which we are currently using.</p>
 <pre class="bash"><code>hostname</code></pre>
 <pre><code>## ucla-biostat-203b</code></pre>
-<p><code>arch</code> displays “x86_64” which is a description that is attached to the platform we are using (64-bit redhat linux gnu)</p>
+<p><code>arch</code> displays the machine hardware name.</p>
 <pre class="bash"><code>arch</code></pre>
 <pre><code>## x86_64</code></pre>
-<p><code>uname -a</code></p>
+<p><code>uname -a</code> prints system information, the <code>-a</code> option means we want to see all system information. This system information includes the kernel name, network node hostname, the kernel release, the kernel version, machine hardware name (should be same as output from the <code>arch</code> command), processor type, hardware platform, and the operating system.</p>
 <pre class="bash"><code>uname -a</code></pre>
 <pre><code>## Linux ucla-biostat-203b 3.10.0-1160.6.1.el7.x86_64 #1 SMP Tue Nov 17 13:59:11 UTC 2020 x86_64 x86_64 x86_64 GNU/Linux</code></pre>
+<p><code>uptime</code> displays the current time in UTC, how long the system has been running, how many users are currently logged in, and the system load averages for the past 1, 5, and 15 minutes (this information is copied from the <code>man uptime</code> command).</p>
+<pre class="bash"><code>uptime</code></pre>
+<pre><code>##  05:30:05 up 17 days,  7:41,  2 users,  load average: 0.41, 0.18, 0.16</code></pre>
+<p><code>who am i</code> displays the current user’s name.</p>
+<pre class="bash"><code>whoami</code></pre>
+<pre><code>## kmishimoto</code></pre>
+<p><code>who</code> display the users currently logged in as well as the time they logged in.</p>
+<pre class="bash"><code>who</code></pre>
+<pre><code>## valentina214 pts/4        2021-01-21 04:57 (47.156.178.126)
+## kmishimoto pts/6        2021-01-21 05:00 (ip174-67-246-239.oc.oc.cox.net)</code></pre>
+<p><code>w</code> shows who is currently logged in, with some more details compared to the <code>who</code> command. <code>w</code> also shows what the idle time, JCPU, PCPU, and the current process they are doing.</p>
+<pre class="bash"><code>w</code></pre>
+<pre><code>##  05:30:05 up 17 days,  7:41,  2 users,  load average: 0.41, 0.18, 0.16
+## USER     TTY      FROM             LOGIN@   IDLE   JCPU   PCPU WHAT
+## valentin pts/4    47.156.178.126   04:57   30:29   0.02s  0.02s -bash
+## kmishimo pts/6    ip174-67-246-239 05:00    4:53   0.04s  0.04s -bash</code></pre>
+<p><code>id</code> outputs id information for the current user. Specifically, it outputs the user id (number and name) and the group id (number and name)</p>
+<pre class="bash"><code>id</code></pre>
+<pre><code>## uid=1015(kmishimoto) gid=1017(kmishimoto) groups=1017(kmishimoto) context=system_u:system_r:initrc_t:s0</code></pre>
+<p><code>last | head</code> shows the last 10 users that logged in as well as when they logged in and when they logged off (or if they are still logged in).</p>
+<pre class="bash"><code>last | head</code></pre>
+<pre><code>## kmishimo pts/6        ip174-67-246-239 Thu Jan 21 05:00   still logged in   
+## haoyunj  pts/5        101.93.71.50     Thu Jan 21 04:59 - 05:04  (00:04)    
+## valentin pts/4        47.156.178.126   Thu Jan 21 04:57   still logged in   
+## kmishimo pts/4        ip174-67-246-239 Thu Jan 21 04:35 - 04:53  (00:18)    
+## haoyunj  pts/1        101.93.71.50     Thu Jan 21 04:33 - 05:15  (00:41)    
+## haoyunj  pts/1        101.93.71.50     Thu Jan 21 04:31 - 04:33  (00:02)    
+## haoyunj  pts/4        101.93.71.50     Thu Jan 21 04:22 - 04:29  (00:07)    
+## kmishimo pts/1        ip174-67-246-239 Thu Jan 21 04:15 - 04:26  (00:10)    
+## asburyse pts/4        c-67-171-189-1.h Thu Jan 21 02:05 - 03:04  (00:58)    
+## pdgerald pts/0        131.179.156.33   Thu Jan 21 01:02 - 01:04  (00:01)</code></pre>
+<p><code>echo {con,pre}{sent,fer}{s,ed}</code> prints all possible combinations that can be formed by taking one element from each bracketed group and pasting them together.</p>
+<pre class="bash"><code>echo {con,pre}{sent,fer}{s,ed}</code></pre>
+<pre><code>## consents consented confers confered presents presented prefers prefered</code></pre>
+<p><code>time sleep 5</code> combines two commands. <code>time</code> shows the time it takes to complete a command (time measured in elapsed time, not CPU time). <code>sleep</code> delays the execution of a command for a number of seconds. <code>time sleep 5</code> outputs the time it takes to execute a the command <code>sleep 5</code> which delays the execution of the command by 5 seconds.</p>
+<pre class="bash"><code>time sleep 5</code></pre>
+<pre><code>## 
+## real 0m5.002s
+## user 0m0.000s
+## sys  0m0.002s</code></pre>
+<p><code>history | tail</code> outputs the last 10 commands that were most recently used.</p>
+<pre class="bash"><code>history | tail</code></pre>
 </div>
 </div>
 
