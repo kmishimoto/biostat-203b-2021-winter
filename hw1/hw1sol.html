@@ -617,11 +617,16 @@ summary {
 <p><strong>Solution:</strong></p>
 <pre class="bash"><code>for i in &quot;Elizabeth&quot; &quot;Jane&quot; &quot;Lydia&quot; &quot;Darcy&quot;;
 do
+  echo $i
   grep -o $i pride_and_prejudice.txt | wc -l
   done</code></pre>
-<pre><code>## 634
+<pre><code>## Elizabeth
+## 634
+## Jane
 ## 294
+## Lydia
 ## 170
+## Darcy
 ## 417</code></pre>
 <p>Elizabeth is mentioned 634 times. Jane is mentioned 294 times. Lydia is mentioned 170 times. Darcy is mentioned 417 times. Elizabeth is mentioned the most often out of these four characters.</p>
 <ol start="2" style="list-style-type: decimal">
@@ -716,7 +721,7 @@ chmod 770 middle.sh</code></pre>
 <p>Something unusual is that the 3rd to the 13th are missing from the above calendar.</p>
 <p><code>date</code> displays the current day of the week, the date, and the time</p>
 <pre class="bash"><code>date</code></pre>
-<pre><code>## Thu Jan 21 05:30:05 UTC 2021</code></pre>
+<pre><code>## Fri Jan 22 00:20:21 UTC 2021</code></pre>
 <p><code>hostname</code> displays the name of the “host” which in this case is the name of the teaching server which we are currently using.</p>
 <pre class="bash"><code>hostname</code></pre>
 <pre><code>## ucla-biostat-203b</code></pre>
@@ -728,35 +733,41 @@ chmod 770 middle.sh</code></pre>
 <pre><code>## Linux ucla-biostat-203b 3.10.0-1160.6.1.el7.x86_64 #1 SMP Tue Nov 17 13:59:11 UTC 2020 x86_64 x86_64 x86_64 GNU/Linux</code></pre>
 <p><code>uptime</code> displays the current time in UTC, how long the system has been running, how many users are currently logged in, and the system load averages for the past 1, 5, and 15 minutes (this information is copied from the <code>man uptime</code> command).</p>
 <pre class="bash"><code>uptime</code></pre>
-<pre><code>##  05:30:05 up 17 days,  7:41,  2 users,  load average: 0.41, 0.18, 0.16</code></pre>
+<pre><code>##  00:20:22 up 18 days,  2:31,  5 users,  load average: 1.84, 1.04, 1.00</code></pre>
 <p><code>who am i</code> displays the current user’s name.</p>
 <pre class="bash"><code>whoami</code></pre>
 <pre><code>## kmishimoto</code></pre>
 <p><code>who</code> display the users currently logged in as well as the time they logged in.</p>
 <pre class="bash"><code>who</code></pre>
-<pre><code>## valentina214 pts/4        2021-01-21 04:57 (47.156.178.126)
-## kmishimoto pts/6        2021-01-21 05:00 (ip174-67-246-239.oc.oc.cox.net)</code></pre>
+<pre><code>## jyixzhou pts/0        2021-01-22 00:13 (cpe84948c862443-cm84948c862440.cpe.net.fido.ca)
+## filipovicmilan271 pts/7        2021-01-21 06:03 (110.3.236.35.bc.googleusercontent.com)
+## germc3   pts/8        2021-01-21 22:27 (cpe-172-117-252-49.socal.res.rr.com)
+## hunanzhou pts/11       2021-01-21 23:28 (47.145.202.194)
+## spendlove.sj pts/13       2021-01-21 23:35 (cpe-172-117-248-147.socal.res.rr.com)</code></pre>
 <p><code>w</code> shows who is currently logged in, with some more details compared to the <code>who</code> command. <code>w</code> also shows what the idle time, JCPU, PCPU, and the current process they are doing.</p>
 <pre class="bash"><code>w</code></pre>
-<pre><code>##  05:30:05 up 17 days,  7:41,  2 users,  load average: 0.41, 0.18, 0.16
+<pre><code>##  00:20:22 up 18 days,  2:31,  5 users,  load average: 1.84, 1.04, 1.00
 ## USER     TTY      FROM             LOGIN@   IDLE   JCPU   PCPU WHAT
-## valentin pts/4    47.156.178.126   04:57   30:29   0.02s  0.02s -bash
-## kmishimo pts/6    ip174-67-246-239 05:00    4:53   0.04s  0.04s -bash</code></pre>
+## jyixzhou pts/0    cpe84948c862443- 00:13    5:02   0.04s  0.04s -bash
+## filipovi pts/7    110.3.236.35.bc. Thu06   18:11m  0.06s  0.06s -bash
+## germc3   pts/8    cpe-172-117-252- 22:27    6.00s  0.10s  0.10s -bash
+## hunanzho pts/11   47.145.202.194   23:28   15:34   0.08s  0.08s -bash
+## spendlov pts/13   cpe-172-117-248- 23:35   44:14   0.04s  0.00s gzip -dc -- /usr/203b-data/mimic-iv/core/admissions.csv.gz</code></pre>
 <p><code>id</code> outputs id information for the current user. Specifically, it outputs the user id (number and name) and the group id (number and name)</p>
 <pre class="bash"><code>id</code></pre>
 <pre><code>## uid=1015(kmishimoto) gid=1017(kmishimoto) groups=1017(kmishimoto) context=system_u:system_r:initrc_t:s0</code></pre>
 <p><code>last | head</code> shows the last 10 users that logged in as well as when they logged in and when they logged off (or if they are still logged in).</p>
 <pre class="bash"><code>last | head</code></pre>
-<pre><code>## kmishimo pts/6        ip174-67-246-239 Thu Jan 21 05:00   still logged in   
-## haoyunj  pts/5        101.93.71.50     Thu Jan 21 04:59 - 05:04  (00:04)    
-## valentin pts/4        47.156.178.126   Thu Jan 21 04:57   still logged in   
-## kmishimo pts/4        ip174-67-246-239 Thu Jan 21 04:35 - 04:53  (00:18)    
-## haoyunj  pts/1        101.93.71.50     Thu Jan 21 04:33 - 05:15  (00:41)    
-## haoyunj  pts/1        101.93.71.50     Thu Jan 21 04:31 - 04:33  (00:02)    
-## haoyunj  pts/4        101.93.71.50     Thu Jan 21 04:22 - 04:29  (00:07)    
-## kmishimo pts/1        ip174-67-246-239 Thu Jan 21 04:15 - 04:26  (00:10)    
-## asburyse pts/4        c-67-171-189-1.h Thu Jan 21 02:05 - 03:04  (00:58)    
-## pdgerald pts/0        131.179.156.33   Thu Jan 21 01:02 - 01:04  (00:01)</code></pre>
+<pre><code>## jyixzhou pts/0        cpe84948c862443- Fri Jan 22 00:13   still logged in   
+## spendlov pts/13       cpe-172-117-248- Thu Jan 21 23:35   still logged in   
+## hunanzho pts/11       47.145.202.194   Thu Jan 21 23:28   still logged in   
+## haoyunj  pts/1        101.93.71.50     Thu Jan 21 23:28 - 23:54  (00:26)    
+## germc3   pts/8        cpe-172-117-252- Thu Jan 21 22:27   still logged in   
+## huazhou  pts/8        108-64-58-205.li Thu Jan 21 22:19 - 22:19  (00:00)    
+## dshehtan pts/0        cpe-75-82-17-105 Thu Jan 21 20:47 - 20:50  (00:02)    
+## asburyse pts/0        c-73-25-154-169. Thu Jan 21 19:25 - 20:12  (00:47)    
+## asburyse pts/0        c-73-25-154-169. Thu Jan 21 17:13 - 17:59  (00:46)    
+## asburyse pts/0        c-73-25-154-169. Thu Jan 21 17:11 - 17:13  (00:01)</code></pre>
 <p><code>echo {con,pre}{sent,fer}{s,ed}</code> prints all possible combinations that can be formed by taking one element from each bracketed group and pasting them together.</p>
 <pre class="bash"><code>echo {con,pre}{sent,fer}{s,ed}</code></pre>
 <pre><code>## consents consented confers confered presents presented prefers prefered</code></pre>

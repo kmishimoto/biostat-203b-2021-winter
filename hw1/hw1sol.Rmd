@@ -197,6 +197,7 @@ Do **not** put this text file `pride_and_prejudice.txt` in Git. Using a `for` lo
 ```{bash}
 for i in "Elizabeth" "Jane" "Lydia" "Darcy";
 do
+  echo $i
   grep -o $i pride_and_prejudice.txt | wc -l
   done
 ```
