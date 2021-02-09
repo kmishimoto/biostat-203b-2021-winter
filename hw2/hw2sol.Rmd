@@ -89,7 +89,7 @@ icustays_tble %>%
   distinct(stay_id) %>% 
   nrow()
 ```
-There are 69619 unique `stay_id`s. It seems that each row is a unique ICU stay. (number of rows is the same as the number of rows of original tibble)
+There are 69,619 unique `stay_id`s. It seems that each row is a unique ICU stay. (number of rows is the same as the number of rows of original tibble)
 
 How many unique `subject_id`s?
 ```{r}
@@ -97,40 +97,54 @@ icustays_tble %>%
   distinct(subject_id) %>% 
   nrow()
 ```
-One patient can have more than one ICU stays.
+There are 50,048 unique `subject_id`s. Since the number of unique `stay_id`s is greater than the number of unique `subject_id`s, one patient can have more than one ICU stays.
 
 -length of ICU stays (histogram)
 ```{r}
+fivenum(icustays_tble$los)
+
 icustays_tble %>% 
   ggplot() +
   geom_histogram(mapping = aes(x = los)) +
-  labs(xlabel = "Length of stay (days)")
+  xlab("Length of stay (days)")
 ```
 
-or we can try a boxplot:
-```{r}
-icustays_tble %>% 
-  ggplot() +
-  geom_boxplot(mapping = aes(x = los)) +
-  labs(xlabel = "Length of stay (days)")
-```
+We can see from the histogram above that the length of ICU stays is very positively skewed. The median of the length of ICU stays is 2.06 days, and about half of our data lie between 1.13 days and 4.20 days. The minimum length of stay was less than half a day, and the maximum length of stay was almost 600 days. 
+
 
 Why so many high `los`? Let's see those outliers more than 100 days. 
 
 ```{r}
 icustays_tble %>% 
+  select(los) %>% 
   filter(los >=100)
 ```
 
 - First ICU unit
 ```{r}
 icustays_tble %>% 
-  group_by(first_careunit)
+  select(first_careunit) %>% 
+  ggplot(aes(x = first_careunit)) +
+  geom_bar() + 
+  xlab("First Care Unit") + 
+  theme(axis.text.x = element_text(angle = 65, vjust = 1, hjust=1))
 ```
 
+We can see from the bar plot that the majority of the first care units were Medical Intensive Care Unit (MICU).
 
 
 - Last ICU unit
+
+```{r}
+icustays_tble %>% 
+  select(last_careunit) %>% 
+  ggplot(aes(x = last_careunit)) +
+  geom_bar() + 
+  xlab("Last Care Unit") + 
+  theme(axis.text.x = element_text(angle = 65, vjust = 1, hjust=1))
+```
+
+The relative counts of the last care units is similar to the first care units, however, Medicine and PACU that appear in the first care unit bar plot is not seen in the last care unit bar plot.
 
 ## Q4. `admission` data
 
@@ -158,11 +172,22 @@ Note it is possible that one patient (uniquely identified by the `SUBJECT_ID`) i
 - use tidyverse, categorical data -- use graphs
 
 First read in the data:
-```{r, eval = FALSE}
+```{r}
 admissions_tble <- read_csv(str_c(mimic_path, "/core/admissions.csv.gz"))
 ```
 
 Summarize analysis either by unique patients or not, just make an argument either way.
+
+```{r}
+admissions_tble %>% 
+  #.keep_all = T means we want to keep all variables
+  distinct(., subject_id, .keep_all = T) %>% 
+  ggplot(aes(x=admittime)) +
+  geom_histogram(aes(y = ..count..), bins = 30) + 
+  xlab("Admission Year") + 
+  ylab("Total Count")
+```
+
 
 
 For the death information: if `deathtime` is not missing (!is.na), then `hospital_expire_flag` should be 1 --> we need to check this hypothesis. If these two variables agree then we can use either one for our `death` data. Otherwise, we have to make a choice (probably need to read the documentation to see which one is a better indication (less error)).
@@ -180,8 +205,20 @@ Explore `patients.csv.gz` (<https://mimic-iv.mit.edu/docs/datasets/core/patients
 ```{r}
 patients_tble <- read_csv(str_c(mimic_path, "/core/patients.csv.gz"))
 print(patients_tble, width = Inf)
-
 ```
+
+```{r}
+patients_tble %>% 
+  # there is a spike in value where anchor age = 0, obscures our graph
+  filter(anchor_age != 0) %>% 
+  select(anchor_age) %>% 
+  ggplot(aes(x = anchor_age)) +
+  geom_histogram(mapping = aes(y = ..density..), 
+                 position = "identity", fill = "orange") +
+  geom_density(alpha = 0.6) + #shows the smoothing pattern
+  theme_classic()
+```
+
 
 ## Q6. Lab results
 
@@ -200,7 +237,7 @@ labevents_tble <- read_csv(str_c(mimic_path, "/hosp/labevents.csv.gz"))
 ```
 
 Let's just take a look at the first few lines of the labevents data:
-```{r}
+```{r, eval = FALSE}
 system(str_c("zcat < ", shQuote(str_c(mimic_path, "/hosp/labevents.csv.gz")),
              " | head"), intern = TRUE)
 ```
@@ -211,19 +248,44 @@ Dr. Zhou used `read_csv` and only read in those above columns --> but it's still
 
 use data.table
 
+Try running the following code on my own computer, or try removing all other variables int he environment (top right window), and see if 
+
 Code from Dr. Zhou:
 took 200 seconds
-```{r, eval = FALSE}
+```{r, eval=FALSE}
 if (!file.exists("labevents_icustays.csv.gz")) {
   labevents_tble <- fread(str_c(mimic_path, "/hosp/labevents.csv.gz"),
-                        select("subject_id", "hadm_id", "itemid", 
+                        select = c("subject_id", "hadm_id", "itemid", 
                                "charttime", "valuenum"),
                         nThread = 4)
   labevents_tble %>% 
   semi_join(icustays_tble, by = c("subject_id", "hadm_id")) %>% 
   fwrite("labevents_icustays.csv.gz", nThread = 4)
 }
+```
 
+From Annalisa:
+```{r, eval = F}
+if(!file.exists("labevents_icustays.csv.gz")){
+  system.time(labevents_tab <- 
+                fread(str_c(mimic_path, "/hosp/labevents.csv.gz"),
+                      select = c("subject_id", "hadm_id", "itemid", 
+                                 "charttime", "valuenum"), 
+                      nThread = 4))
+  labevents_tab %>%
+    semi_join(icustays_tab, by = c("subject_id", "hadm_id")) %>%
+    fwrite("labevents_icustays.csv.gz", nThread = 4)
+}
+
+system.time(labevents_tab <- fread("labevents_icustays.csv.gz"))
+labevents_tab %>%
+  as.tibble() %>%
+  
+  print(width = Inf)
+```
+
+
+```{r, eval=FALSE}
 # 15 seconds, will take about 17 seconds with nThread = 1 (default)
 labevents_tble <- fread("labevents_icustays.csv.gz", nThread = 4)
 
@@ -233,7 +295,7 @@ labevents_tble %>%
 ```
 
 Now we only want some lab item ids: read in the lab item dictionary
-```{r}
+```{r, eval = FALSE}
 dlabitmes_tble <- 
   read_csv(str_c(mimic_path, "/hosp/d_labitems.csv.gz")) %>% 
   print(width = Inf)
@@ -287,4 +349,5 @@ icustays_tble %>%
 ```
 age at admission = anchor_year - admission_year + anchor_age
 
+At the end of code, just show the first few observations of our final tibble.
 
