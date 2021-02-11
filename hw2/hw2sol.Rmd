@@ -168,29 +168,257 @@ Information of the patients admitted into hospital is available in `ADMISSION.cs
 
 Note it is possible that one patient (uniquely identified by the `SUBJECT_ID`) is admitted into hospital multiple times. When summarizing some demographic information, it makes sense to summarize based on unique patients. 
 
-**Solution Notes:**
-- use tidyverse, categorical data -- use graphs
+**Solution:**
 
 First read in the data:
 ```{r}
 admissions_tble <- read_csv(str_c(mimic_path, "/core/admissions.csv.gz"))
 ```
 
-Summarize analysis either by unique patients or not, just make an argument either way.
+As we have seen before, the same patient could have several hospital stays. So first, I want to decide which variables I will need to only look at distinct `subject_id`s for. In order to do this, I want to look at a sample of the data:
 
 ```{r}
 admissions_tble %>% 
-  #.keep_all = T means we want to keep all variables
-  distinct(., subject_id, .keep_all = T) %>% 
-  ggplot(aes(x=admittime)) +
-  geom_histogram(aes(y = ..count..), bins = 30) + 
+  filter(hospital_expire_flag == 1) %>% 
+  head()
+# 16441855, 14536465, 11475290
+admissions_tble %>% 
+  select(subject_id, admittime, dischtime, admission_location, discharge_location) %>%
+  filter(subject_id == 11707036) %>% 
+  arrange(admittime) %>% 
+  print(width = Inf)
+```
+
+A single patient may have been admitted to the hospital several times, but sometimes, the second admission is just that patient being transferred to another hospital department, and other times it is the case that patient is discharged home and then they end up at the hospital again. Since this is the case, I will include the whole dataset for most analysis other than demographic information. For the summary of death, I will also summarize by unique patients. 
+
+- Admission Year
+```{r}
+admissions_tble %>% 
+  ggplot(aes(x = year(admittime))) +
+  geom_histogram(aes(y = ..count..), bins = 30,
+                 color = "black", fill = "light blue") + 
   xlab("Admission Year") + 
   ylab("Total Count")
 ```
 
+- Admission Month
+
+```{r}
+admissions_tble %>% 
+  ggplot(aes(x = month(admittime, labe = TRUE, abbr = FALSE))) +
+  geom_bar(color = "black", fill = "light blue") + 
+  xlab("Admission Month") + 
+  ylab("Total Count") + 
+  theme(axis.text.x = element_text(angle = 50, vjust = 1, hjust=1))
+```
+
+- admission month day
+
+```{r}
+admissions_tble %>% 
+  ggplot(aes(x = mday(admittime))) +
+  geom_bar(color = "black", fill = "light blue") + 
+  xlab("Admission Month Day") + 
+  ylab("Total Count")
+```
+
+We can see that there are less admissions at hte end of the month. This is because not all months have a 31st day, and similarly, the month of February is short; it never has the 30th or 31st day, and only has the 29th day every fourth year. This is reflected in the above graph where the 29th, 30th, and 31st days have less admissions than the rest of the month days. For the other days, it seems that other days have about the same admission count. 
+
+- admission week day  
+
+```{r}
+admissions_tble %>% 
+  ggplot(aes(x = wday(admittime, label = TRUE, abbr = FALSE))) +
+  geom_bar(color = "black", fill = "light blue") + 
+  xlab("Admission Week Day") + 
+  ylab("Total Count")
+```
+
+All the week days have a similar count of patients, indicating that there seems to be a uniform distribution of admissions across week days. 
+
+- admission hour (anything unusual?) 
+
+```{r}
+admissions_tble %>% 
+  ggplot(aes(x = hour(admittime))) +
+  geom_histogram(aes(y = ..count..), bins = 12, 
+                 color = "black", fill = "light blue") + 
+  xlab("Admission Hour") + 
+  ylab("Total Count")
+```
+
+There seems to be an unusually large number of patients that were admitted at midnight. This might be the time the hospital wrote down when the actual admission time was not known. There is also a peak of admission hour around 7am. This might be because that is when people wake up and find something wrong with themselves or their family member. Similarly, there is another peak of admissions in the evening. This might be that people found something wrong with themselves but didn't go to the hospital to get admitted until after their work was over, or didn't find their family member at home until they got off of work. 
 
 
-For the death information: if `deathtime` is not missing (!is.na), then `hospital_expire_flag` should be 1 --> we need to check this hypothesis. If these two variables agree then we can use either one for our `death` data. Otherwise, we have to make a choice (probably need to read the documentation to see which one is a better indication (less error)).
+- number of deaths in each year  
+
+First I'm going to check whether the number of deaths is the same when we make the calculations with `deathtime` not missing and when we use `hospital_expire_flag` = 1
+```{r}
+admissions_tble %>% 
+  summarise(flagdead = sum(hospital_expire_flag), timedead = sum(!is.na(deathtime)))
+```
+
+We can see that the results are not the same when we use these two different variables. Using the `hospital_expire_flag`, there seems to be more people who did not survive their hospital stay.
+
+```{r}
+admissions_tble %>% 
+  select(dischtime, deathtime, hospital_expire_flag) %>% 
+  filter(hospital_expire_flag == 1 & is.na(deathtime))
+```
+
+Reading the documentation of the MIMIC-IV data, it says, "Note that `deathtime` is only present if the patient died in-hospital, and is almost always the same as the patient’s `dischtime`. However, there can be some discrepancies due to typographical errors." For all the data points where `deathtime` is missing but `hospital_expire_flag` = 1 (indicating the patient died in the hospital), a discharge time still exists, and from the documentation, it seems that time of death is usually agrees with discharge time unless there are typographical errors. It could be that the hospital worker only wrote down the discharge time assuming that people would know that would be the same time of death for patients who did not survive their hospital stay. For this reason, I will use `hospital_expire_flag` as the indicator of death.
+
+```{r}
+yeardeaths <- admissions_tble %>% 
+  group_by(year(dischtime)) %>% 
+  summarise(dead = sum(hospital_expire_flag))
+
+names(yeardeaths) <- c('year', 'dead')
+
+yeardeaths %>% 
+  ggplot(aes(x = year, y = dead)) + 
+  geom_col(color = "black", fill = "light blue") + 
+  xlab("Year") + 
+  ylab("Number of Deaths")
+```
+
+The shape of this graph is similar to the shape of the admission year graph. Indicating that the rate of deaths per admissions per year is around the same across the years.
+
+- admission type
+
+```{r}
+admissions_tble %>% 
+  distinct(., subject_id, .keep_all = TRUE) %>% 
+  ggplot(aes(x = admission_type)) + 
+  geom_bar() + 
+  theme(axis.text.x = element_text(angle = 50, vjust = 1, hjust=1)) +
+  xlab("Admission Type") +
+  ylab("Count")
+```
+
+Most patients seemed to have been admitted through Elective, EU Observation, or EW Emergency.
+
+
+
+- number of admissions per patient  
+
+```{r}
+admissions_tble %>% 
+  count(subject_id) %>% 
+  ggplot(aes(x = subject_id, y = n)) +
+  geom_line() + 
+  xlab("Subject ID") + 
+  ylab("Number of Admissions")
+```
+
+Most patients seemed to have been only admitted a few times while other patients were admitted dozens of times, and other patients were admitted over a hundred times. As we have investigated before, "admissions" also refers to times when patients are transferred to another hospital department, which can account for some of the multiple hospital admissions, but the higher number of admissions seems very high. 
+
+
+- admission location  
+
+```{r}
+admissions_tble %>% 
+  #distinct(., subject_id, .keep_all = TRUE) %>% 
+  ggplot(aes(x = admission_location)) + 
+  geom_bar() + 
+  theme(axis.text.x = element_text(angle = 70, vjust = 1, hjust=1)) +
+  xlab("Admission Location") +
+  ylab("Count")
+```
+
+Most of the patients were admitted either through the emergency room or physician referral.
+
+
+- discharge location  
+
+```{r}
+admissions_tble %>% 
+  distinct(., subject_id, .keep_all = TRUE) %>% 
+  ggplot(aes(x = discharge_location)) + 
+  geom_bar() + 
+  theme(axis.text.x = element_text(angle = 60, vjust = 1, hjust=1)) +
+  xlab("Discharge Location") +
+  ylab("Count")
+```
+
+Most patients were discharged home or the discharge location was not applicable. This not applicable could have been that they were transferred to another part of the hospital perhaps?
+
+- insurance 
+
+Each patient should have the same insurance across all of their hospital stays, so I chose to only look at unique `subject_id`s for this summary of `insurance`.
+
+```{r}
+admissions_tble %>% 
+  distinct(., subject_id, .keep_all = TRUE) %>% 
+  ggplot(aes(x = insurance)) + 
+  geom_bar() + 
+  xlab("Insurance") +
+  ylab("Count")
+```
+
+The majority of patients had insurance other than Medicaid and Medicare. 
+
+- language 
+
+Again, only looking at unique `subject_id`s. 
+
+```{r}
+admissions_tble %>% 
+  distinct(., subject_id, .keep_all = TRUE) %>% 
+  ggplot(aes(x = language)) + 
+  geom_bar() + 
+  xlab("Language") +
+  ylab("Count")
+```
+
+The overwhelming majority of patients spoke English.
+
+- martial status:
+Again, only looking at unique `subject_id`s
+
+```{r}
+admissions_tble %>% 
+  distinct(., subject_id, .keep_all = TRUE) %>% 
+  ggplot(aes(x = marital_status)) + 
+  geom_bar() + 
+  xlab("Marital Status") +
+  ylab("Count")
+```
+
+Most patients were either married or single. But also, a lot of patients were listed as `NA` which I'm not sure what that means. It could be that the patient was too young to be married or that the marital status was unknown.
+
+- ethnicity  
+
+```{r}
+admissions_tble %>% 
+  distinct(., subject_id, .keep_all = TRUE) %>% 
+  ggplot(aes(x = ethnicity)) + 
+  geom_bar() + 
+  xlab("Ethnicity") +
+  ylab("Count") + 
+  theme(axis.text.x = element_text(angle = 60, vjust = 1, hjust = 1))
+```
+
+Most people were white. 
+
+- death
+
+```{r}
+admissions_tble %>%  
+  summarize(death_count = sum(hospital_expire_flag))
+
+admissions_tble %>% 
+  distinct(., subject_id) %>% 
+  nrow()
+
+ggplot()+
+  geom_col(aes(x = c("Died", "Survived"), y = c(9369, 257366-9369))) +
+  xlab("Mortality") + 
+  ylab("Count")
+```
+
+The total number of unique patients is 257,366 people. Of those patients, 9,369 (3.64%) of them ended up dying in the hospital. But as we can see in the graph, the overwhelming majority of patients survived (96.36%). 
+
 
 ## Q5. `patient` data
 
