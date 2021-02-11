@@ -427,25 +427,40 @@ Explore `patients.csv.gz` (<https://mimic-iv.mit.edu/docs/datasets/core/patients
 - `gender`  
 - `anchor_age` (explain pattern you see)
 
-**Solution Notes: **
-- need to understand what `anchor_age` means
+**Solution:**
+- need to understand what `anchor_age` means: `anchor_age` is the age of a patient in the provided `anchor_year`
 
 ```{r}
 patients_tble <- read_csv(str_c(mimic_path, "/core/patients.csv.gz"))
 print(patients_tble, width = Inf)
 ```
 
+-Gender
+
+
 ```{r}
 patients_tble %>% 
-  # there is a spike in value where anchor age = 0, obscures our graph
-  filter(anchor_age != 0) %>% 
-  select(anchor_age) %>% 
-  ggplot(aes(x = anchor_age)) +
-  geom_histogram(mapping = aes(y = ..density..), 
-                 position = "identity", fill = "orange") +
-  geom_density(alpha = 0.6) + #shows the smoothing pattern
-  theme_classic()
+  ggplot(aes(x = gender)) + 
+  geom_bar(color = "black", fill = "light blue") + 
+  xlab("Gender") +
+  ylab("Count") + 
+  scale_x_discrete(labels = c("Female", "Male"))
 ```
+
+The genders of the patients are split fairly evenly between male and female.
+
+
+- Anchor Age
+
+```{r}
+patients_tble %>% 
+  ggplot(aes(x = anchor_age)) +
+  geom_histogram(color = "black", fill = "light blue", bin = 20) +
+  xlab("Age at Anchor Year") + 
+  ylab("Count")
+```
+
+Many patients have an age of zero during their anchor year. This might be because that would make it easier to calculate their actual age during a certain hospital stay since their actual age would just be the difference between the shifted year in their chart and their anchor year. The other strange thing is that there is little to no `anchor_age`s in the range of 1 year to 20 years. This could be because for some patients, their ages were set to zero at their anchor year, but for other patients, their ages were set to their actual age according to their anchor year which could have been the same as their year of admission to the hospital. 
 
 
 ## Q6. Lab results
