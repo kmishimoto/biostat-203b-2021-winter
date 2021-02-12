@@ -1158,6 +1158,87 @@ labevents2 %&gt;%
 <p>We are interested in the vitals for ICU patients: heart rate, mean and systolic blood pressure (invasive and noninvasive measurements combined), body temperature, SpO2, and respiratory rate.</p>
 <p><code>chartevents.csv.gz</code> (<a href="https://mimic-iv.mit.edu/docs/datasets/icu/chartevents/" class="uri">https://mimic-iv.mit.edu/docs/datasets/icu/chartevents/</a>) contains all the charted data available for a patient. During their ICU stay, the primary repository of a patient’s information is their electronic chart. The <code>ITEMID</code> variable indicates a single measurement type in the database. The <code>VALUE</code> variable is the value measured for <code>ITEMID</code>.</p>
 <p><code>d_items.csv.gz</code> (<a href="https://mimic-iv.mit.edu/docs/datasets/icu/d_items/" class="uri">https://mimic-iv.mit.edu/docs/datasets/icu/d_items/</a>) is the dictionary for the <code>ITEMID</code> in <code>CHARTEVENTS.csv</code>. Find potential values of <code>ITEMID</code> that correspond to systolic blood pressure, i.e., <code>LABEL</code> contains the string <code>systolic</code>.</p>
+<p><strong>Solution</strong>: chartevents.csv.gz is such a big file, I will read in the smaller file that Dr. Zhou created which has only the events of interest:</p>
+<pre class="r"><code>chartevents1 &lt;- as_tibble(fread(str_c(mimic_path2, &quot;/chartevents_filtered_itemid.csv.gz&quot;)))
+names(chartevents1) &lt;- c(&quot;subject_id&quot;, &quot;hadm_id&quot;, &quot;stay_id&quot;, &quot;charttime&quot;, &quot;itemid&quot;, &quot;valuenum&quot;)
+print(chartevents1, width = Inf)</code></pre>
+<pre><code>## # A tibble: 30,095,996 x 6
+##    subject_id  hadm_id  stay_id charttime           itemid valuenum
+##         &lt;int&gt;    &lt;int&gt;    &lt;int&gt; &lt;chr&gt;                &lt;int&gt;    &lt;dbl&gt;
+##  1   10003700 28623837 35053963 2165-04-24 05:28:00 220179    152  
+##  2   10003700 28623837 35053963 2165-04-24 05:28:00 220181    110  
+##  3   10003700 28623837 35053963 2165-04-24 05:30:00 220045     65  
+##  4   10003700 28623837 35053963 2165-04-24 05:30:00 220210     14  
+##  5   10003700 28623837 35053963 2165-04-24 05:38:00 223761     97.6
+##  6   10003700 28623837 35053963 2165-04-24 06:00:00 220045     56  
+##  7   10003700 28623837 35053963 2165-04-24 06:00:00 220179    126  
+##  8   10003700 28623837 35053963 2165-04-24 06:00:00 220181     88  
+##  9   10003700 28623837 35053963 2165-04-24 06:00:00 220210     14  
+## 10   10003700 28623837 35053963 2165-04-24 06:09:00 220045     55  
+## # ... with 30,095,986 more rows</code></pre>
+<p>first, we only want some vital information, so start with dictionary</p>
+<pre class="r"><code>dchart_tble &lt;- 
+  read_csv(str_c(mimic_path, &quot;/icu/d_items.csv.gz&quot;)) %&gt;% 
+  print(width = Inf)</code></pre>
+<pre><code>## 
+## -- Column specification --------------------------------------------------------
+## cols(
+##   itemid = col_double(),
+##   label = col_character(),
+##   abbreviation = col_character(),
+##   linksto = col_character(),
+##   category = col_character(),
+##   unitname = col_character(),
+##   param_type = col_character(),
+##   lownormalvalue = col_double(),
+##   highnormalvalue = col_double()
+## )</code></pre>
+<pre><code>## # A tibble: 3,835 x 9
+##    itemid label                                abbreviation       linksto       
+##     &lt;dbl&gt; &lt;chr&gt;                                &lt;chr&gt;              &lt;chr&gt;         
+##  1 220003 ICU Admission date                   ICU Admission date datetimeevents
+##  2 220045 Heart Rate                           HR                 chartevents   
+##  3 220046 Heart rate Alarm - High              HR Alarm - High    chartevents   
+##  4 220047 Heart Rate Alarm - Low               HR Alarm - Low     chartevents   
+##  5 220048 Heart Rhythm                         Heart Rhythm       chartevents   
+##  6 220050 Arterial Blood Pressure systolic     ABPs               chartevents   
+##  7 220051 Arterial Blood Pressure diastolic    ABPd               chartevents   
+##  8 220052 Arterial Blood Pressure mean         ABPm               chartevents   
+##  9 220056 Arterial Blood Pressure Alarm - Low  ABP Alarm - Low    chartevents   
+## 10 220058 Arterial Blood Pressure Alarm - High ABP Alarm - High   chartevents   
+##    category            unitname param_type    lownormalvalue highnormalvalue
+##    &lt;chr&gt;               &lt;chr&gt;    &lt;chr&gt;                  &lt;dbl&gt;           &lt;dbl&gt;
+##  1 ADT                 &lt;NA&gt;     Date and time             NA              NA
+##  2 Routine Vital Signs bpm      Numeric                   NA              NA
+##  3 Alarms              bpm      Numeric                   NA              NA
+##  4 Alarms              bpm      Numeric                   NA              NA
+##  5 Routine Vital Signs &lt;NA&gt;     Text                      NA              NA
+##  6 Routine Vital Signs mmHg     Numeric                   90             140
+##  7 Routine Vital Signs mmHg     Numeric                   60              90
+##  8 Routine Vital Signs mmHg     Numeric                   NA              NA
+##  9 Alarms              mmHg     Numeric                   NA              NA
+## 10 Alarms              mmHg     Numeric                   NA              NA
+## # ... with 3,825 more rows</code></pre>
+<p>Let’s inspect the itemids of Dr. Zhou’s filtered chart events data set:</p>
+<pre class="r"><code>vitalids &lt;- chartevents1 %&gt;% 
+  distinct(itemid) %&gt;% 
+  .$itemid
+
+vitallabs &lt;- matrix(c(vitalids, rep(0, 7)), nrow = 7)
+j = 1
+
+for (i in vitalids) {
+  print(dchart_tble$label[dchart_tble$itemid == i])
+  vitallabs[j, 2] &lt;- dchart_tble$label[dchart_tble$itemid == i]
+  j &lt;- j+1
+}</code></pre>
+<pre><code>## [1] &quot;Non Invasive Blood Pressure systolic&quot;
+## [1] &quot;Non Invasive Blood Pressure mean&quot;
+## [1] &quot;Heart Rate&quot;
+## [1] &quot;Respiratory Rate&quot;
+## [1] &quot;Temperature Fahrenheit&quot;
+## [1] &quot;Arterial Blood Pressure systolic&quot;
+## [1] &quot;Arterial Blood Pressure mean&quot;</code></pre>
 </div>
 <div id="q8.-putting-things-together" class="section level2">
 <h2>Q8. Putting things together</h2>

@@ -547,7 +547,6 @@ labevents2 %>%
   print()
 ```
 
-
 ## Q7. Vitals from chartered events
 
 We are interested in the vitals for ICU patients: heart rate, mean and systolic blood pressure (invasive and noninvasive measurements combined), body temperature, SpO2, and respiratory rate.
@@ -555,6 +554,41 @@ We are interested in the vitals for ICU patients: heart rate, mean and systolic 
 `chartevents.csv.gz` (<https://mimic-iv.mit.edu/docs/datasets/icu/chartevents/>) contains all the charted data available for a patient. During their ICU stay, the primary repository of a patient’s information is their electronic chart. The `ITEMID` variable indicates a single measurement type in the database. The `VALUE` variable is the value measured for `ITEMID`. 
 
 `d_items.csv.gz` (<https://mimic-iv.mit.edu/docs/datasets/icu/d_items/>) is the dictionary for the `ITEMID` in `CHARTEVENTS.csv`. Find potential values of `ITEMID` that correspond to systolic blood pressure, i.e., `LABEL` contains the string `systolic`. 
+
+**Solution**:
+chartevents.csv.gz is such a big file, I will read in the smaller file that Dr. Zhou created which has only the events of interest:
+
+```{r}
+chartevents1 <- as_tibble(fread(str_c(mimic_path2, "/chartevents_filtered_itemid.csv.gz")))
+names(chartevents1) <- c("subject_id", "hadm_id", "stay_id", "charttime", "itemid", "valuenum")
+print(chartevents1, width = Inf)
+```
+
+first, we only want some vital information, so start with dictionary
+
+```{r}
+dchart_tble <- 
+  read_csv(str_c(mimic_path, "/icu/d_items.csv.gz")) %>% 
+  print(width = Inf)
+```
+
+Let's inspect the itemids of Dr. Zhou's filtered chart events data set:
+
+```{r}
+vitalids <- chartevents1 %>% 
+  distinct(itemid) %>% 
+  .$itemid
+
+vitallabs <- matrix(c(vitalids, rep(0, 7)), nrow = 7)
+j = 1
+
+for (i in vitalids) {
+  print(dchart_tble$label[dchart_tble$itemid == i])
+  vitallabs[j, 2] <- dchart_tble$label[dchart_tble$itemid == i]
+  j <- j+1
+}
+
+```
 
 
 ## Q8. Putting things together
