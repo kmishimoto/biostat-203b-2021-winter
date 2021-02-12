@@ -1261,22 +1261,189 @@ for (i in vitalids) {
 <li>an indicator variable whether the patient died within 30 days of hospital admission</li>
 </ul>
 <p>only getting the first ICU stay of each unique patient:</p>
-<pre class="r"><code>icustays_tble %&gt;% 
-  # just keep first ICU stay for each unique subject id
+<p>First I’m going to make a mini tibble for admissions, icustays, patients, labevents, and chartevents.</p>
+<pre class="r"><code>admit &lt;- head(admissions_tble, n = 100)
+icu &lt;- icustays_tble %&gt;% 
+  arrange(subject_id) %&gt;% 
+  head(n = 50)
+patients &lt;- head(patients_tble)
+labevents &lt;- head(labevents_tble)
+chartevents &lt;- head(chartevents1)</code></pre>
+<p>First, we just want to have the first icustay of each unique patient</p>
+<pre class="r"><code>icu_unique &lt;- icu %&gt;% 
+  arrange(subject_id) %&gt;% # this just makes it easier for me (not necessary)
   group_by(subject_id) %&gt;% 
   slice_min(intime) %&gt;% 
-  # merge admissions tibble
-  left_join(admissions_tble, by = c(&quot;subject_id&quot;, &quot;hadm_id&quot;)) %&gt;% 
-  # merge patients tibble
-  left_join(patients_tble, by = &quot;subject_id&quot;) %&gt;% 
-  # only keep adults (age at admission &gt;= 18)
-  mutate(age_at_adm = year(admittime) - anchor_year + anchor_age) %&gt;% 
-  filter(age_at_adm &gt;= 18) %&gt;% 
-  # want lab measurement for first ICU stay
-  # look at labitem&#39;s chart time and make sure its between the intime and outime
-  # for each subject id
-  print(width = Inf) </code></pre>
-<p>age at admission = anchor_year - admission_year + anchor_age</p>
+  left_join(admissions_tble) %&gt;% # allows us to have admittime
+  # to find out age at admission, we need to load in patient data
+  left_join(patients_tble) %&gt;% 
+  mutate(admit_age = year(admittime) - anchor_year + anchor_age) %&gt;% 
+  # only want adults:
+  filter(admit_age &gt;= 18) %&gt;% 
+  # creating indicator for death within 30 days
+  mutate(death30days = (deathtime - admittime) &lt; ddays(30)) %&gt;% 
+  print()</code></pre>
+<pre><code>## Joining, by = c(&quot;subject_id&quot;, &quot;hadm_id&quot;)</code></pre>
+<pre><code>## Joining, by = &quot;subject_id&quot;</code></pre>
+<pre><code>## # A tibble: 34 x 28
+## # Groups:   subject_id [34]
+##    subject_id hadm_id stay_id first_careunit last_careunit intime             
+##         &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt;          &lt;chr&gt;         &lt;dttm&gt;             
+##  1   10000032  2.91e7  3.75e7 Medical Inten~ Medical Inte~ 2180-07-23 14:00:00
+##  2   10000980  2.69e7  3.67e7 Medical Inten~ Medical Inte~ 2189-06-27 08:42:00
+##  3   10001217  2.46e7  3.03e7 Surgical Inte~ Surgical Int~ 2157-11-20 19:18:02
+##  4   10001725  2.56e7  3.75e7 Medical/Surgi~ Medical/Surg~ 2110-04-11 15:52:22
+##  5   10001884  2.62e7  3.18e7 Medical Inten~ Medical Inte~ 2131-01-11 04:20:05
+##  6   10002013  2.36e7  3.71e7 Cardiac Vascu~ Cardiac Vasc~ 2160-05-18 10:00:53
+##  7   10002155  2.38e7  3.46e7 Coronary Care~ Coronary Car~ 2129-08-04 12:45:00
+##  8   10002223  2.25e7  3.99e7 Trauma SICU (~ Trauma SICU ~ 2158-01-15 08:01:49
+##  9   10002428  2.87e7  3.20e7 Medical Inten~ Medical Inte~ 2156-04-12 16:24:18
+## 10   10002443  2.13e7  3.52e7 Coronary Care~ Coronary Car~ 2183-10-18 00:47:00
+## # ... with 24 more rows, and 22 more variables: outtime &lt;dttm&gt;, los &lt;dbl&gt;,
+## #   admittime &lt;dttm&gt;, dischtime &lt;dttm&gt;, deathtime &lt;dttm&gt;, admission_type &lt;chr&gt;,
+## #   admission_location &lt;chr&gt;, discharge_location &lt;chr&gt;, insurance &lt;chr&gt;,
+## #   language &lt;chr&gt;, marital_status &lt;chr&gt;, ethnicity &lt;chr&gt;, edregtime &lt;dttm&gt;,
+## #   edouttime &lt;dttm&gt;, hospital_expire_flag &lt;dbl&gt;, gender &lt;chr&gt;,
+## #   anchor_age &lt;dbl&gt;, anchor_year &lt;dbl&gt;, anchor_year_group &lt;chr&gt;, dod &lt;lgl&gt;,
+## #   admit_age &lt;dbl&gt;, death30days &lt;lgl&gt;</code></pre>
+<p>So above, we have made an (abbreviated) data set that only has the first icu stay of each unique patient along with their admission and patient info + only adults.</p>
+<p>So now to filter the labevents table so that we can join that into the above data set: (only keep first lab measurement for the above icu stays (match subject id and hospital stay id))</p>
+<pre class="r"><code>labmatch &lt;- labevents_tble %&gt;% 
+  # only keeping rows matching the subject and hospital stay id from above data set
+  semi_join(icu_unique, by = c(&quot;subject_id&quot;, &quot;hadm_id&quot;)) %&gt;% 
+  # only want lab measurement taken after patient was admitted to the hospital:
+  left_join(select(icu_unique, subject_id, hadm_id, intime), by = c(&quot;subject_id&quot;, &quot;hadm_id&quot;)) %&gt;% 
+  mutate(charttime = ymd_hms(charttime), intime = ymd_hms(intime)) %&gt;% 
+  filter(charttime &gt;= intime) %&gt;% 
+  # now we want to only keep the first lab measurements
+  group_by(subject_id, itemid) %&gt;% 
+  arrange(charttime, .by_group = TRUE) %&gt;% 
+  slice_head() %&gt;% 
+  select(-intime, -charttime) %&gt;% 
+  # now spread data, so each itemid has its own column:
+  spread(key = itemid, value = valuenum) %&gt;% 
+  print()</code></pre>
+<pre><code>## # A tibble: 34 x 13
+## # Groups:   subject_id [34]
+##    subject_id hadm_id `50813` `50882` `50893` `50902` `50912` `50931` `50960`
+##         &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;
+##  1   10000032  2.91e7    NA        21     9.3     102     0.5     115     2.3
+##  2   10000980  2.69e7    NA        23     9.2     103     2.2     144     2  
+##  3   10001217  2.46e7    NA        23     8.2     104     0.4     113     1.9
+##  4   10001725  2.56e7    NA        24     9.1     106     0.8     146     1.5
+##  5   10001884  2.62e7     1.5      33     9.8      96     1.1     148     2.2
+##  6   10002013  2.36e7     3.3      23    NA       109     1.1      98     2.1
+##  7   10002155  2.38e7    NA        25     8.8     106     0.9      95     2  
+##  8   10002223  2.25e7    NA        26     8.7     102     0.8      88     2  
+##  9   10002428  2.87e7     1.6      20     7.4      98     0.8      99     1.4
+## 10   10002443  2.13e7     1.7      20     7.6     101     0.8     226     1.6
+## # ... with 24 more rows, and 4 more variables: `50971` &lt;dbl&gt;, `50983` &lt;dbl&gt;,
+## #   `51221` &lt;dbl&gt;, `51301` &lt;dbl&gt;</code></pre>
+<p>Getting more informative labels for the lab item ids:</p>
+<pre class="r"><code>for (i in 1:11) {
+  for (j in 1:11) {
+    if (names(labmatch)[2+i] == labels[j, 1]) {
+      names(labmatch)[2+i] &lt;- labels[j, 2]
+    }
+  }
+}</code></pre>
+<p>Now to get a filtered chart events data frame (only the subject ids and hospital stay ids for the first icu stays per unique patient):</p>
+<pre class="r"><code>chartmatch &lt;- chartevents1 %&gt;% 
+  semi_join(icu_unique, by = c(&quot;subject_id&quot;, &quot;hadm_id&quot;)) %&gt;% 
+  left_join(select(icu_unique, subject_id, hadm_id, intime), by = c(&quot;subject_id&quot;, &quot;hadm_id&quot;)) %&gt;% 
+  mutate(charttime = ymd_hms(charttime), intime = ymd_hms(intime)) %&gt;% 
+  filter(charttime &gt;= intime) %&gt;% 
+  arrange(subject_id, charttime) %&gt;%  # not necessary, just for me
+  group_by(subject_id, itemid) %&gt;% 
+  arrange(charttime, .by_group = TRUE) %&gt;% 
+  slice_head() %&gt;% 
+  select(-charttime, -intime, -stay_id) %&gt;% 
+  spread(key = itemid, value = valuenum) %&gt;% 
+  #arrange(subject_id) %&gt;% # not necessary, just for me
+  print()</code></pre>
+<pre><code>## # A tibble: 34 x 9
+## # Groups:   subject_id [34]
+##    subject_id hadm_id `220045` `220050` `220052` `220179` `220181` `220210`
+##         &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+##  1   10000032  2.91e7       91       NA       NA       84       56       24
+##  2   10000980  2.69e7       77       NA       NA      150       92       23
+##  3   10001217  2.46e7       86       NA       NA      151      104       18
+##  4   10001725  2.56e7       55       NA       NA       73       59       19
+##  5   10001884  2.62e7       38       NA       NA      180       46       10
+##  6   10002013  2.36e7       80      134       94      104       77       14
+##  7   10002155  2.38e7       68      115       82      126       78       18
+##  8   10002223  2.25e7      100       NA       NA      123       80       29
+##  9   10002428  2.87e7      124      102       69       87       53       25
+## 10   10002443  2.13e7       81       NA       NA      136       99       23
+## # ... with 24 more rows, and 1 more variable: `223761` &lt;dbl&gt;</code></pre>
+<pre class="r"><code>print(chartmatch, width = Inf)</code></pre>
+<pre><code>## # A tibble: 34 x 9
+## # Groups:   subject_id [34]
+##    subject_id  hadm_id `220045` `220050` `220052` `220179` `220181` `220210`
+##         &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+##  1   10000032 29079034       91       NA       NA       84       56       24
+##  2   10000980 26913865       77       NA       NA      150       92       23
+##  3   10001217 24597018       86       NA       NA      151      104       18
+##  4   10001725 25563031       55       NA       NA       73       59       19
+##  5   10001884 26184834       38       NA       NA      180       46       10
+##  6   10002013 23581541       80      134       94      104       77       14
+##  7   10002155 23822395       68      115       82      126       78       18
+##  8   10002223 22494570      100       NA       NA      123       80       29
+##  9   10002428 28662225      124      102       69       87       53       25
+## 10   10002443 21329021       81       NA       NA      136       99       23
+##    `223761`
+##       &lt;dbl&gt;
+##  1     98.7
+##  2     98  
+##  3     98.5
+##  4     97.7
+##  5     98.1
+##  6     97.2
+##  7     95.9
+##  8     98.6
+##  9    103. 
+## 10     96.7
+## # ... with 24 more rows</code></pre>
+<p>Changing the name of the itemid columns to make them more informative:</p>
+<pre class="r"><code>for (i in 1:7) {
+  for (j in 1:7) {
+    if (names(chartmatch)[2+i] == vitallabs[j, 1]) {
+      names(chartmatch)[2+i] &lt;- vitallabs[j, 2]
+    }
+  }
+}</code></pre>
+<p>Now to combine all of these things:</p>
+<pre class="r"><code>combined &lt;- icu_unique %&gt;% 
+  full_join(labmatch, by = c(&quot;subject_id&quot;, &quot;hadm_id&quot;)) %&gt;% 
+  full_join(chartmatch, by = c(&quot;subject_id&quot;, &quot;hadm_id&quot;)) %&gt;% 
+  print()</code></pre>
+<pre><code>## # A tibble: 34 x 46
+## # Groups:   subject_id [34]
+##    subject_id hadm_id stay_id first_careunit last_careunit intime             
+##         &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt;          &lt;chr&gt;         &lt;dttm&gt;             
+##  1   10000032  2.91e7  3.75e7 Medical Inten~ Medical Inte~ 2180-07-23 14:00:00
+##  2   10000980  2.69e7  3.67e7 Medical Inten~ Medical Inte~ 2189-06-27 08:42:00
+##  3   10001217  2.46e7  3.03e7 Surgical Inte~ Surgical Int~ 2157-11-20 19:18:02
+##  4   10001725  2.56e7  3.75e7 Medical/Surgi~ Medical/Surg~ 2110-04-11 15:52:22
+##  5   10001884  2.62e7  3.18e7 Medical Inten~ Medical Inte~ 2131-01-11 04:20:05
+##  6   10002013  2.36e7  3.71e7 Cardiac Vascu~ Cardiac Vasc~ 2160-05-18 10:00:53
+##  7   10002155  2.38e7  3.46e7 Coronary Care~ Coronary Car~ 2129-08-04 12:45:00
+##  8   10002223  2.25e7  3.99e7 Trauma SICU (~ Trauma SICU ~ 2158-01-15 08:01:49
+##  9   10002428  2.87e7  3.20e7 Medical Inten~ Medical Inte~ 2156-04-12 16:24:18
+## 10   10002443  2.13e7  3.52e7 Coronary Care~ Coronary Car~ 2183-10-18 00:47:00
+## # ... with 24 more rows, and 40 more variables: outtime &lt;dttm&gt;, los &lt;dbl&gt;,
+## #   admittime &lt;dttm&gt;, dischtime &lt;dttm&gt;, deathtime &lt;dttm&gt;, admission_type &lt;chr&gt;,
+## #   admission_location &lt;chr&gt;, discharge_location &lt;chr&gt;, insurance &lt;chr&gt;,
+## #   language &lt;chr&gt;, marital_status &lt;chr&gt;, ethnicity &lt;chr&gt;, edregtime &lt;dttm&gt;,
+## #   edouttime &lt;dttm&gt;, hospital_expire_flag &lt;dbl&gt;, gender &lt;chr&gt;,
+## #   anchor_age &lt;dbl&gt;, anchor_year &lt;dbl&gt;, anchor_year_group &lt;chr&gt;, dod &lt;lgl&gt;,
+## #   admit_age &lt;dbl&gt;, death30days &lt;lgl&gt;, Lactate &lt;dbl&gt;, Bicarbonate &lt;dbl&gt;,
+## #   `Calcium, Total` &lt;dbl&gt;, Chloride &lt;dbl&gt;, Creatinine &lt;dbl&gt;, Glucose &lt;dbl&gt;,
+## #   Magnesium &lt;dbl&gt;, Potassium &lt;dbl&gt;, Sodium &lt;dbl&gt;, Hematocrit &lt;dbl&gt;, `White
+## #   Blood Cells` &lt;dbl&gt;, `Heart Rate` &lt;dbl&gt;, `Arterial Blood Pressure
+## #   systolic` &lt;dbl&gt;, `Arterial Blood Pressure mean` &lt;dbl&gt;, `Non Invasive Blood
+## #   Pressure systolic` &lt;dbl&gt;, `Non Invasive Blood Pressure mean` &lt;dbl&gt;,
+## #   `Respiratory Rate` &lt;dbl&gt;, `Temperature Fahrenheit` &lt;dbl&gt;</code></pre>
 <p>At the end of code, just show the first few observations of our final tibble.</p>
 </div>
 

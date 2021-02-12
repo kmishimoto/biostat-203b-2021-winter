@@ -608,24 +608,113 @@ and columns contains at least following variables
 - an indicator variable whether the patient died within 30 days of hospital admission  
 
 only getting the first ICU stay of each unique patient:
-```{r, eval = F}
-icustays_tble %>% 
-  # just keep first ICU stay for each unique subject id
+
+First I'm going to make a mini tibble for admissions, icustays, patients, labevents, and chartevents.
+```{r}
+admit <- head(admissions_tble, n = 100)
+icu <- icustays_tble %>% 
+  arrange(subject_id) %>% 
+  head(n = 50)
+patients <- head(patients_tble)
+labevents <- head(labevents_tble)
+chartevents <- head(chartevents1)
+```
+
+First, we just want to have the first icustay of each unique patient
+```{r}
+icu_unique <- icu %>% 
+  arrange(subject_id) %>% # this just makes it easier for me (not necessary)
   group_by(subject_id) %>% 
   slice_min(intime) %>% 
-  # merge admissions tibble
-  left_join(admissions_tble, by = c("subject_id", "hadm_id")) %>% 
-  # merge patients tibble
-  left_join(patients_tble, by = "subject_id") %>% 
-  # only keep adults (age at admission >= 18)
-  mutate(age_at_adm = year(admittime) - anchor_year + anchor_age) %>% 
-  filter(age_at_adm >= 18) %>% 
-  # want lab measurement for first ICU stay
-  # look at labitem's chart time and make sure its between the intime and outime
-  # for each subject id
-  print(width = Inf) 
+  left_join(admissions_tble) %>% # allows us to have admittime
+  # to find out age at admission, we need to load in patient data
+  left_join(patients_tble) %>% 
+  mutate(admit_age = year(admittime) - anchor_year + anchor_age) %>% 
+  # only want adults:
+  filter(admit_age >= 18) %>% 
+  # creating indicator for death within 30 days
+  mutate(death30days = (deathtime - admittime) < ddays(30)) %>% 
+  print()
 ```
-age at admission = anchor_year - admission_year + anchor_age
+
+So above, we have made an (abbreviated) data set that only has the first icu stay of each unique patient along with their admission and patient info + only adults.
+
+So now to filter the labevents table so that we can join that into the above data set: (only keep first lab measurement for the above icu stays (match subject id and hospital stay id))
+
+```{r}
+labmatch <- labevents_tble %>% 
+  # only keeping rows matching the subject and hospital stay id from above data set
+  semi_join(icu_unique, by = c("subject_id", "hadm_id")) %>% 
+  # only want lab measurement taken after patient was admitted to the hospital:
+  left_join(select(icu_unique, subject_id, hadm_id, intime), by = c("subject_id", "hadm_id")) %>% 
+  mutate(charttime = ymd_hms(charttime), intime = ymd_hms(intime)) %>% 
+  filter(charttime >= intime) %>% 
+  # now we want to only keep the first lab measurements
+  group_by(subject_id, itemid) %>% 
+  arrange(charttime, .by_group = TRUE) %>% 
+  slice_head() %>% 
+  select(-intime, -charttime) %>% 
+  # now spread data, so each itemid has its own column:
+  spread(key = itemid, value = valuenum) %>% 
+  print()
+```
+
+Getting more informative labels for the lab item ids:
+```{r}
+for (i in 1:11) {
+  for (j in 1:11) {
+    if (names(labmatch)[2+i] == labels[j, 1]) {
+      names(labmatch)[2+i] <- labels[j, 2]
+    }
+  }
+}
+```
+
+
+Now to get a filtered chart events data frame (only the subject ids and hospital stay ids for the first icu stays per unique patient):
+```{r}
+chartmatch <- chartevents1 %>% 
+  semi_join(icu_unique, by = c("subject_id", "hadm_id")) %>% 
+  left_join(select(icu_unique, subject_id, hadm_id, intime), by = c("subject_id", "hadm_id")) %>% 
+  mutate(charttime = ymd_hms(charttime), intime = ymd_hms(intime)) %>% 
+  filter(charttime >= intime) %>% 
+  arrange(subject_id, charttime) %>%  # not necessary, just for me
+  group_by(subject_id, itemid) %>% 
+  arrange(charttime, .by_group = TRUE) %>% 
+  slice_head() %>% 
+  select(-charttime, -intime, -stay_id) %>% 
+  spread(key = itemid, value = valuenum) %>% 
+  #arrange(subject_id) %>% # not necessary, just for me
+  print()
+```
+
+```{r}
+print(chartmatch, width = Inf)
+```
+
+
+Changing the name of the itemid columns to make them more informative:
+```{r}
+for (i in 1:7) {
+  for (j in 1:7) {
+    if (names(chartmatch)[2+i] == vitallabs[j, 1]) {
+      names(chartmatch)[2+i] <- vitallabs[j, 2]
+    }
+  }
+}
+```
+
+
+Now to combine all of these things:
+
+```{r}
+combined <- icu_unique %>% 
+  full_join(labmatch, by = c("subject_id", "hadm_id")) %>% 
+  full_join(chartmatch, by = c("subject_id", "hadm_id")) %>% 
+  print()
+```
+
+
 
 At the end of code, just show the first few observations of our final tibble.
 
