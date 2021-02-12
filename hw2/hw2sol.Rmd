@@ -1,7 +1,7 @@
 ---
 title: "Biostat 203B Homework 2 Solution"
 author: Kelsey Ishimoto
-subtitle: Due Feb 10 @ 11:59PM
+subtitle: Due Friday Feb 12 @ 11:59PM
 output: 
   html_document:
     toc: true
@@ -18,14 +18,20 @@ knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
 library(tidyverse)
 library(data.table)
 library(lubridate)
+library(stringr)
 ```
 
 ```{r}
 os <- sessionInfo()$running
 if (str_detect(os, "Linux")) {
   mimic_path <- "/usr/203b-data/mimic-iv"
+  mimic_path2 <- "/usr/203b-data/mimic-iv-derived-data"
 } else if (str_detect(os, "macOS")) {
   mimic_path <- "/Users/huazhou/Documents/Box Sync/MIMIC/mimic-iv-0.4"
+} else if (str_detect(os, "Windows")) {
+  mimic_path <- "/Users/kmish/Documents/Biostat203b/MIMIC-IV"
+  mimic_path2 <- mimic_path
+  setwd("~/Biostat203B/HW/HW2")
 }
 ```
 
@@ -53,7 +59,7 @@ In this homework, we stick to the tidyverse.
 
 **Solution: (editing needed later)**
 
-```{r, eval=FALSE}
+```{r, eval=F}
 system.time(read.csv(str_c(mimic_path, "/core/admissions.csv.gz")))
 
 system.time(read_csv(str_c(mimic_path, "/core/admissions.csv.gz")))
@@ -144,7 +150,7 @@ icustays_tble %>%
   theme(axis.text.x = element_text(angle = 65, vjust = 1, hjust=1))
 ```
 
-The relative counts of the last care units is similar to the first care units, however, Medicine and PACU that appear in the first care unit bar plot is not seen in the last care unit bar plot.
+The relative counts of the last care units is similar to the first care units, perhaps indicating that the ICU patient usually does not transfer to a different ICU unit. However, Medicine and PACU that appear in the first care unit bar plot is not seen in the last care unit bar plot, indicating that maybe those ICU patients are then transferred to other ICU units before being discharged.
 
 ## Q4. `admission` data
 
@@ -419,7 +425,6 @@ ggplot()+
 
 The total number of unique patients is 257,366 people. Of those patients, 9,369 (3.64%) of them ended up dying in the hospital. But as we can see in the graph, the overwhelming majority of patients survived (96.36%). 
 
-
 ## Q5. `patient` data
 
 Explore `patients.csv.gz` (<https://mimic-iv.mit.edu/docs/datasets/core/patients/>) and summarize following variables using appropriate numerics and graphs:  
@@ -462,89 +467,85 @@ patients_tble %>%
 
 Many patients have an age of zero during their anchor year. This might be because that would make it easier to calculate their actual age during a certain hospital stay since their actual age would just be the difference between the shifted year in their chart and their anchor year. The other strange thing is that there is little to no `anchor_age`s in the range of 1 year to 20 years. This could be because for some patients, their ages were set to zero at their anchor year, but for other patients, their ages were set to their actual age according to their anchor year which could have been the same as their year of admission to the hospital. 
 
-
 ## Q6. Lab results
 
-`labevents.csv.gz` (<https://mimic-iv.mit.edu/docs/datasets/hosp/labevents/>) contains all laboratory measurements for patients. 
+`labevents.csv.gz` (<https://mimic-iv.mit.edu/docs/datasets/hosp/labevents/>) contains all laboratory measurements for patients.
 
-We are interested in the lab measurements of creatinine, potassium, sodium, chloride, bicarbonate, hematocrit, white blood cell count, glucose, magnesium, calcium, phosphorus, and lactate. Find the `itemid`s of these lab measurements from `d_labitems.csv.gz` and retrieve a subset of `labevents.csv.gz` only containing these items.
+We are interested in the lab measurements of creatinine (50912), potassium (50971), sodium (50983), chloride (50902), bicarbonate (50882), hematocrit (51221), white blood cell count (51301), glucose (50931), magnesium (50960), calcium (50893), and lactate (50813). Find the itemids of these lab measurements from d_labitems.csv.gz and retrieve a subset of labevents.csv.gz only containing these items.
 
-**Solution Notes:**
-- there are many lab events, but collect the above lab measurements from those two data files.
-- tidyverse merging and whatnot
-- the data files, even after compression, are very large, and there is some trouble reading the data
+**Solution:**
 
-The following file is so large. Normally we would want to use a database in order to read in this file. But without using a database.
-```{r, eval = FALSE}
-labevents_tble <- read_csv(str_c(mimic_path, "/hosp/labevents.csv.gz"))
-```
-
-Let's just take a look at the first few lines of the labevents data:
-```{r, eval = FALSE}
-system(str_c("zcat < ", shQuote(str_c(mimic_path, "/hosp/labevents.csv.gz")),
-             " | head"), intern = TRUE)
-```
-
-We only need some variables: subject id, labevent id, hadm id, itemid, charttime, valuenum
-
-Dr. Zhou used `read_csv` and only read in those above columns --> but it's still too much memory
-
-use data.table
-
-Try running the following code on my own computer, or try removing all other variables int he environment (top right window), and see if 
+So first we want to load in our lab events data. We only need a few variables, and we only need the `subject_id`s that match the subset of `subject_id`s in the `icustays` file.
 
 Code from Dr. Zhou:
-took 200 seconds
-```{r, eval=FALSE}
+```{r}
 if (!file.exists("labevents_icustays.csv.gz")) {
   labevents_tble <- fread(str_c(mimic_path, "/hosp/labevents.csv.gz"),
-                        select = c("subject_id", "hadm_id", "itemid", 
-                               "charttime", "valuenum"),
-                        nThread = 4)
+                          select = c("subject_id", "hadm_id", "itemid",
+                                     "charttime", "valuenum"),
+                          nThread = 4)
+  
   labevents_tble %>% 
-  semi_join(icustays_tble, by = c("subject_id", "hadm_id")) %>% 
-  fwrite("labevents_icustays.csv.gz", nThread = 4)
-}
-```
-
-From Annalisa:
-```{r, eval = F}
-if(!file.exists("labevents_icustays.csv.gz")){
-  system.time(labevents_tab <- 
-                fread(str_c(mimic_path, "/hosp/labevents.csv.gz"),
-                      select = c("subject_id", "hadm_id", "itemid", 
-                                 "charttime", "valuenum"), 
-                      nThread = 4))
-  labevents_tab %>%
-    semi_join(icustays_tab, by = c("subject_id", "hadm_id")) %>%
+    semi_join(icustays_tble, by = c("subject_id", "hadm_id")) %>% 
     fwrite("labevents_icustays.csv.gz", nThread = 4)
 }
-
-system.time(labevents_tab <- fread("labevents_icustays.csv.gz"))
-labevents_tab %>%
-  as.tibble() %>%
-  
-  print(width = Inf)
 ```
 
-
-```{r, eval=FALSE}
-# 15 seconds, will take about 17 seconds with nThread = 1 (default)
-labevents_tble <- fread("labevents_icustays.csv.gz", nThread = 4)
-
-labevents_tble %>% 
-  as_tibble() %>% 
-  print(width = Inf)
+```{r}
+labevents1 <- as_tibble(fread("labevents_icustays.csv.gz"))
+print(labevents1, width = Inf)
 ```
 
-Now we only want some lab item ids: read in the lab item dictionary
-```{r, eval = FALSE}
+Now we only want some lab item ids, so first I will read in the lab item dictionary:
+
+```{r}
 dlabitmes_tble <- 
   read_csv(str_c(mimic_path, "/hosp/d_labitems.csv.gz")) %>% 
   print(width = Inf)
 ```
 
-We can just use the codes provided in the homework assignment. and just keep the rows of the labevents that just have those labitemids.
+```{r}
+itemids <- c(50912, 50971, 50983, 50902, 50882, 51221, 51301, 50931, 50960, 50893, 50813)
+
+labels <- matrix(rep(0, 22), nrow = 11)
+j <- 1
+
+for (i in itemids){
+  print(dlabitmes_tble$label[dlabitmes_tble$itemid == i])
+  labels[j, 1] <- i
+  labels[j, 2] <- dlabitmes_tble$label[dlabitmes_tble$itemid == i]
+  j <- j + 1
+}
+```
+
+```{r}
+labevents_tble <- labevents1 %>% 
+  filter(itemid %in% itemids) %>% 
+  arrange(subject_id)
+print(labevents_tble, width = Inf)
+```
+
+
+Checking my work with the filtered data file from Dr. Zhou:
+```{r}
+labevents2 <- as_tibble(fread(str_c(mimic_path2, "/labevents_filtered_itemid.csv.gz")))
+
+names(labevents2) <- c("subject_id", "hadm_id", "itemid", "charttime", "valuenum")
+
+labevents2 %>% 
+  arrange(subject_id) %>% 
+  print(labevents2, width = Inf)
+
+
+```
+
+
+```{r}
+labevents2 %>% 
+  semi_join(icustays_tble, by = c("subject_id", "hadm_id")) %>% 
+  arrange(subject_id) %>% 
+  print()
+```
 
 
 ## Q7. Vitals from chartered events
