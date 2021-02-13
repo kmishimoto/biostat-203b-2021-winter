@@ -422,25 +422,25 @@ summary {
 <li><a href="#solution">Solution:</a></li>
 </ul></li>
 <li><a href="#q2.-read.csv-base-r-vs-read_csv-tidyverse-vs-fread-data.table">Q2. <code>read.csv</code> (base R) vs <code>read_csv</code> (tidyverse) vs <code>fread</code> (data.table)</a><ul>
-<li><a href="#solution-editing-needed-later">Solution: (editing needed later)</a></li>
-</ul></li>
-<li><a href="#q3.-icu-stays">Q3. ICU stays</a><ul>
 <li><a href="#solution-1">Solution:</a></li>
 </ul></li>
-<li><a href="#q4.-admission-data">Q4. <code>admission</code> data</a><ul>
+<li><a href="#q3.-icu-stays">Q3. ICU stays</a><ul>
 <li><a href="#solution-2">Solution:</a></li>
 </ul></li>
-<li><a href="#q5.-patient-data">Q5. <code>patient</code> data</a><ul>
+<li><a href="#q4.-admission-data">Q4. <code>admission</code> data</a><ul>
 <li><a href="#solution-3">Solution:</a></li>
 </ul></li>
-<li><a href="#q6.-lab-results">Q6. Lab results</a><ul>
+<li><a href="#q5.-patient-data">Q5. <code>patient</code> data</a><ul>
 <li><a href="#solution-4">Solution:</a></li>
 </ul></li>
-<li><a href="#q7.-vitals-from-chart-events">Q7. Vitals from chart events</a><ul>
+<li><a href="#q6.-lab-results">Q6. Lab results</a><ul>
 <li><a href="#solution-5">Solution:</a></li>
 </ul></li>
-<li><a href="#q8.-putting-things-together">Q8. Putting things together</a><ul>
+<li><a href="#q7.-vitals-from-chart-events">Q7. Vitals from chart events</a><ul>
 <li><a href="#solution-6">Solution:</a></li>
+</ul></li>
+<li><a href="#q8.-putting-things-together">Q8. Putting things together</a><ul>
+<li><a href="#solution-7">Solution:</a></li>
 </ul></li>
 </ul>
 </div>
@@ -501,15 +501,37 @@ if (str_detect(os, &quot;Linux&quot;)) {
 <h2>Q2. <code>read.csv</code> (base R) vs <code>read_csv</code> (tidyverse) vs <code>fread</code> (data.table)</h2>
 <p>There are quite a few utilities in R for reading data files. Let us test the speed of reading a moderate sized compressed csv file, <code>admissions.csv.gz</code>, by three programs: <code>read.csv</code> in base R, <code>read_csv</code> in tidyverse, and <code>fread</code> in the popular data.table package. Is there any speed difference?</p>
 <p>In this homework, we stick to the tidyverse.</p>
-<div id="solution-editing-needed-later" class="section level3">
-<h3>Solution: (editing needed later)</h3>
-<pre class="r"><code>system.time(read.csv(str_c(mimic_path, &quot;/core/admissions.csv.gz&quot;)))
-
-system.time(read_csv(str_c(mimic_path, &quot;/core/admissions.csv.gz&quot;)))
-
-system.time(fread(str_c(mimic_path, &quot;/core/admissions.csv.gz&quot;)))</code></pre>
-<p>The function <code>read.csv</code> took about 46 seconds to run on my machine. Whereas <code>read_csv</code> took only about 5 seconds to run. And <code>fread</code> took about 2 seconds to run.</p>
-<p><strong>change eval = FALSE later – I just want to speed up my knitting while doing this homework.</strong></p>
+<div id="solution-1" class="section level3">
+<h3>Solution:</h3>
+<pre class="r"><code>system.time(read.csv(str_c(mimic_path, &quot;/core/admissions.csv.gz&quot;)))</code></pre>
+<pre><code>##    user  system elapsed 
+##    9.25    0.20   10.03</code></pre>
+<pre class="r"><code>system.time(read_csv(str_c(mimic_path, &quot;/core/admissions.csv.gz&quot;)))</code></pre>
+<pre><code>## 
+## -- Column specification --------------------------------------------------------
+## cols(
+##   subject_id = col_double(),
+##   hadm_id = col_double(),
+##   admittime = col_datetime(format = &quot;&quot;),
+##   dischtime = col_datetime(format = &quot;&quot;),
+##   deathtime = col_datetime(format = &quot;&quot;),
+##   admission_type = col_character(),
+##   admission_location = col_character(),
+##   discharge_location = col_character(),
+##   insurance = col_character(),
+##   language = col_character(),
+##   marital_status = col_character(),
+##   ethnicity = col_character(),
+##   edregtime = col_datetime(format = &quot;&quot;),
+##   edouttime = col_datetime(format = &quot;&quot;),
+##   hospital_expire_flag = col_double()
+## )</code></pre>
+<pre><code>##    user  system elapsed 
+##    2.97    1.08    4.19</code></pre>
+<pre class="r"><code>system.time(fread(str_c(mimic_path, &quot;/core/admissions.csv.gz&quot;)))</code></pre>
+<pre><code>##    user  system elapsed 
+##    1.31    0.28    2.25</code></pre>
+<p>The first time I ran this on the teaching server, the function <code>read.csv</code> took about 46 seconds to run on my machine. Whereas <code>read_csv</code> took only about 5 seconds to run. And <code>fread</code> took about 2 seconds to run. <code>fread</code> is the fastest read function, with <code>read_csv</code> close behind it, and <code>read.csv</code> much slower. On my local computer, the speed of these programs were different, but <code>fread</code> was still the fastest, and <code>read.csv</code> was still the slowest.</p>
 </div>
 </div>
 <div id="q3.-icu-stays" class="section level2">
@@ -526,7 +548,7 @@ system.time(fread(str_c(mimic_path, &quot;/core/admissions.csv.gz&quot;)))</code
 </li>
 <li>last ICU unit</li>
 </ul>
-<div id="solution-1" class="section level3">
+<div id="solution-2" class="section level3">
 <h3>Solution:</h3>
 <p>First read in <code>icustays</code> data:</p>
 <pre class="r"><code>icustays_tble &lt;- read_csv(str_c(mimic_path, &quot;/icu/icustays.csv.gz&quot;))</code></pre>
@@ -688,7 +710,7 @@ lculabs %&gt;%
 <li>death</li>
 </ul>
 <p>Note it is possible that one patient (uniquely identified by the <code>SUBJECT_ID</code>) is admitted into hospital multiple times. When summarizing some demographic information, it makes sense to summarize based on unique patients.</p>
-<div id="solution-2" class="section level3">
+<div id="solution-3" class="section level3">
 <h3>Solution:</h3>
 <p>First read in the data:</p>
 <pre class="r"><code>admissions_tble &lt;- read_csv(str_c(mimic_path, &quot;/core/admissions.csv.gz&quot;))</code></pre>
@@ -1048,10 +1070,10 @@ ggplot(mapping = aes(x = mort, y = percent, label = paste(percent, &quot;%&quot;
 </li>
 <li><code>anchor_age</code> (explain pattern you see)</li>
 </ul>
-<div id="solution-3" class="section level3">
+<div id="solution-4" class="section level3">
 <h3>Solution:</h3>
 <ul>
-<li>need to understand what <code>anchor_age</code> means: <code>anchor_age</code> is the age of a patient in the provided <code>anchor_year</code></li>
+<li>meaning of <code>anchor_age</code>: <code>anchor_age</code> is the age of a patient in the provided <code>anchor_year</code> (these measures were taken in order to de-identify the data)</li>
 </ul>
 <pre class="r"><code>patients_tble &lt;- read_csv(str_c(mimic_path, &quot;/core/patients.csv.gz&quot;))</code></pre>
 <pre><code>## 
@@ -1118,7 +1140,7 @@ genlabs %&gt;%
 <h2>Q6. Lab results</h2>
 <p><code>labevents.csv.gz</code> (<a href="https://mimic-iv.mit.edu/docs/datasets/hosp/labevents/" class="uri">https://mimic-iv.mit.edu/docs/datasets/hosp/labevents/</a>) contains all laboratory measurements for patients.</p>
 <p>We are interested in the lab measurements of creatinine (50912), potassium (50971), sodium (50983), chloride (50902), bicarbonate (50882), hematocrit (51221), white blood cell count (51301), glucose (50931), magnesium (50960), calcium (50893), and lactate (50813). Find the itemids of these lab measurements from d_labitems.csv.gz and retrieve a subset of labevents.csv.gz only containing these items.</p>
-<div id="solution-4" class="section level3">
+<div id="solution-5" class="section level3">
 <h3>Solution:</h3>
 <p>So first we want to load in our lab events data. We only need a few variables, and we only need the <code>subject_id</code>s that match the subset of <code>subject_id</code>s in the <code>icustays</code> file.</p>
 <p>Code from Dr. Zhou:</p>
@@ -1269,7 +1291,7 @@ labevents2 %&gt;%
 <p>We are interested in the vitals for ICU patients: heart rate, mean and systolic blood pressure (invasive and noninvasive measurements combined), body temperature, SpO2, and respiratory rate.</p>
 <p><code>chartevents.csv.gz</code> (<a href="https://mimic-iv.mit.edu/docs/datasets/icu/chartevents/" class="uri">https://mimic-iv.mit.edu/docs/datasets/icu/chartevents/</a>) contains all the charted data available for a patient. During their ICU stay, the primary repository of a patient’s information is their electronic chart. The <code>ITEMID</code> variable indicates a single measurement type in the database. The <code>VALUE</code> variable is the value measured for <code>ITEMID</code>.</p>
 <p><code>d_items.csv.gz</code> (<a href="https://mimic-iv.mit.edu/docs/datasets/icu/d_items/" class="uri">https://mimic-iv.mit.edu/docs/datasets/icu/d_items/</a>) is the dictionary for the <code>ITEMID</code> in <code>CHARTEVENTS.csv</code>. Find potential values of <code>ITEMID</code> that correspond to systolic blood pressure, i.e., <code>LABEL</code> contains the string <code>systolic</code>.</p>
-<div id="solution-5" class="section level3">
+<div id="solution-6" class="section level3">
 <h3>Solution:</h3>
 <pre class="r"><code>if (!file.exists(&quot;chartevents_icustays.csv.gz&quot;)) {
   labevents_tble &lt;- fread(str_c(mimic_path, &quot;/icu/chartevents.csv.gz&quot;),
@@ -1505,7 +1527,7 @@ print(vitallabs)</code></pre>
 </li>
 <li>an indicator variable whether the patient died within 30 days of hospital admission</li>
 </ul>
-<div id="solution-6" class="section level3">
+<div id="solution-7" class="section level3">
 <h3>Solution:</h3>
 <p>Only getting the first ICU stay of each unique patient that is an adult. Also creating an indicator for whether that patient died within 30 days of admission:</p>
 <pre class="r"><code>icustays_unique &lt;- icustays_tble %&gt;% 

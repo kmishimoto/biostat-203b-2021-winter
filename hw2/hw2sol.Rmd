@@ -60,9 +60,9 @@ There are quite a few utilities in R for reading data files. Let us test the spe
 
 In this homework, we stick to the tidyverse. 
 
-### Solution: (editing needed later)
+### Solution:
 
-```{r, eval = FALSE}
+```{r}
 system.time(read.csv(str_c(mimic_path, "/core/admissions.csv.gz")))
 
 system.time(read_csv(str_c(mimic_path, "/core/admissions.csv.gz")))
@@ -70,9 +70,7 @@ system.time(read_csv(str_c(mimic_path, "/core/admissions.csv.gz")))
 system.time(fread(str_c(mimic_path, "/core/admissions.csv.gz")))
 ```
 
-The function `read.csv` took about 46 seconds to run on my machine. Whereas `read_csv` took only about 5 seconds to run. And `fread` took about 2 seconds to run.
-
-**change eval = FALSE later -- I just want to speed up my knitting while doing this homework.**
+The first time I ran this on the teaching server, the function `read.csv` took about 46 seconds to run on my machine. Whereas `read_csv` took only about 5 seconds to run. And `fread` took about 2 seconds to run. `fread` is the fastest read function, with `read_csv` close behind it, and `read.csv` much slower. On my local computer, the speed of these programs were different, but `fread` was still the fastest, and `read.csv` was still the slowest.
 
 ## Q3. ICU stays
 
@@ -545,7 +543,7 @@ Explore `patients.csv.gz` (<https://mimic-iv.mit.edu/docs/datasets/core/patients
 - `anchor_age` (explain pattern you see)
 
 ### Solution:
-- need to understand what `anchor_age` means: `anchor_age` is the age of a patient in the provided `anchor_year`
+- meaning of `anchor_age`: `anchor_age` is the age of a patient in the provided `anchor_year` (these measures were taken in order to de-identify the data)
 
 ```{r}
 patients_tble <- read_csv(str_c(mimic_path, "/core/patients.csv.gz"))
