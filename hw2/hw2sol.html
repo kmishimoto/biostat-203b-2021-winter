@@ -600,13 +600,13 @@ system.time(fread(str_c(mimic_path, &quot;/core/admissions.csv.gz&quot;)))</code
   distinct(stay_id) %&gt;% 
   nrow()</code></pre>
 <pre><code>## [1] 69619</code></pre>
-<p>There are 69,619 unique <code>stay_id</code>s. It seems that each row is a unique ICU stay. (number of rows is the same as the number of rows of original tibble)</p>
+<p>There are <strong>69,619</strong> unique <code>stay_id</code>s. It seems that each row is a unique ICU stay. (number of rows is the same as the number of rows of original tibble)</p>
 <p>How many unique <code>subject_id</code>s?</p>
 <pre class="r"><code>icustays_tble %&gt;% 
   distinct(subject_id) %&gt;% 
   nrow()</code></pre>
 <pre><code>## [1] 50048</code></pre>
-<p>There are 50,048 unique <code>subject_id</code>s. Since the number of unique <code>stay_id</code>s is greater than the number of unique <code>subject_id</code>s, one patient can have more than one ICU stays.</p>
+<p>There are <strong>50,048</strong> unique <code>subject_id</code>s. Since the number of unique <code>stay_id</code>s is greater than the number of unique <code>subject_id</code>s, one patient can have more than one ICU stays.</p>
 <p>-length of ICU stays (histogram)</p>
 <pre class="r"><code>fivenum(icustays_tble$los)</code></pre>
 <pre><code>## [1]   0.0346875   1.1338657   2.0610880   4.2021817 599.2496759</code></pre>
@@ -617,24 +617,6 @@ system.time(fread(str_c(mimic_path, &quot;/core/admissions.csv.gz&quot;)))</code
 <pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
 <p><img src="data:image/png;base64,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0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8Czzzdq6gD7af+uT5d88+2B/Nnv33sFlbgjo7j4Auwx2XvPN2raAPrs9Owzok1uzhTc+usQNAf10dx+AXQY7r/lmbVtAH8xWAb07e+veweNVTi94Q0A/3d0HYJfBzmu+WVsW0Ef7q4A+2l8+qXxy6/WfXfiGgC7s6gOwy2DnNd+s7Qro/AX83x9+DfTB7O3lP3kwe+/CNwR0YVcfgF0GO6/5Zm1XQO/O3l59E+nu7EfLf/JwUcgL3hDQhV19AHYZ7Lzmm7VVAX04f/l+GNBnt1evyRc3L3jj8BpfX9nk8x8cXCigm10a4II2CejyK5kCCuy6TQJ6d/GFzDMBfeOjC96oF9vsebSX8N28xMwy36wtegn/YPn99y/7DFRAr/oAl2PBs8w3a3sC+mh/GUMB/ZJ29QHYZbDzmm/W9gT0wezY/OW478JvalcfgF0GO6/5Zm1rQI/e2Ll6t+eFbgjowq4+ALsMdl7zzdqegK6sXoz7SaRN7eoDsMtg5zXfrG0N6LPbszePf8j9gjcEdGFXH4BdBjuv+WZta0APHp/8NUsXvCGgn+7uA7DLYOc136ytDejB4w/mYXx39cTygjcEdHcfgF0GO6/5Zm1dQKey2b0Q0G4WPMt8swS0ENBuFjzLfLMEtBDQbhY8y3yzBLQQ0G4WPMt8swS0ENBuFjzLfLMEtBDQbhY8y3yzBLQQ0G4WPMt8swS0ENBuFjzLfLMEtBDQbhY8y3yzBLQQ0G4WPMt8swS0ENBuFjzLfLMEtBDQbhY8y3yzBLQQ0G4WPMt8swS0ENBuFjzLfLMEtBDQbhY8y3yzBLQQ0G4WPMt8swS0ENBuFjzLfLMEtBDQbhY8y3yzBLQQ0G4WPMt8swS0ENBuFjzLfLMEtBDQbhY8y3yzBLQQ0G4WPMt8swS0ENBuFjzLfLMEtBDQbhY8y3yzBLQQ0G4WPMt8swS0ENBuFjzLfLMEtBDQbhY8y3yzBLQQ0G4WPMt8swS0ENBuFjzLfLMEtBDQbhY8y3yzBLQQ0G4WPMt8swS0ENBuFjzLfLMEtBDQbhY8y3yzBLQQ0G4WPMt8swS0ENBuFjzLfLMEtBDQbhY8y3yzBLQQ0G4WPMt8swS0ENBuFjzLfLMEtBDQbhY8y3yzBLQQ0G4WPMt8swS0ENBuFjzLfLMEtBDQbhY8y3yzBLQQ0G4WPMt8swS0ENBuFjzLfLMEtBDQbhY8y3yzBLQQ0G4WPMt8swS0ENBuFjzLfLMEtBDQbhY8y3yzBLQQ0G4WPMt8swS0ENBuFjzLfLMEtBDQbhY8y3yzBLQQ0G4WPMt8swS0ENBuFjzLfLMEtBDQbhY8y3yzegP69B/+58fHNz7/7p9+/MI/JaBfxq4+ALsMdl7zzeoN6B+//ZV/efENAZ3Krj4Auwx2XvPNusKAfn5TQAN29QHYZbDzmm9WW0D/+O29M77mJfz0dvUB2GWw85pvVt8z0M/OBvSdXD8FdBAWPMt8s/oC+vT/fu97371548++d+QvfxXsp4AOwoJnmW/WFX4NNGuzeyGg3Sx4lvlmXeHbmLI2uxcC2s2CZ5lvljfSFwLazYJnmW/WVQT0d0d+L6DT29UHYJfBzmu+Wd0B/eLHJ74L732gAbv6AOwy2HnNN6s5oPXdoAIasKsPwC6Dndd8s5oDen9v75W//Ocj/88b6ae3qw/ALoOd13yzmr8L//7eq7lmFpvdCwHtZsGzzDer+32gN36ab+fSZvdCQLtZ8CzzzfJG+kJAu1nwLPPN6n4J7xlo2q4+ALsMdl7zzWr/JtK34uk8tNm9ENBuFjzLfLOaAzp/CvqDeDuXNrsXAtrNgmeZb1b3z8J/d2/v+S9kSv5g/Gb3QkC7WfAs883q/ibSnjfSh+3qA7DLYOc13ywBLQS0mwXPMt8sv42pENBuFjzLfLMEtBDQbhY8y3yzBLQQ0G4WPMt8s5oD+offneT3gQbs6gOwy2DnNd8s30QqBLSbBc8y3ywBLQS0mwXPMt+s5jfS//vRrwL939/Zu/F//D7QgF19AHYZ7Lzmm3V130T6/ObXkv+Hzs3uhYB2s+BZ5pt1hd+Fz/5ikc3uhYB2s+BZ5pt1hQHNPgXd7F4IaDcLnmW+WVcY0OxvV97sXghoNwueZb5ZV/oMVEADdvUB2GWw85pv1tUF9OmdPS/hA3b1AdhlsPOab1b37wM9+lWg3/vuzT3fRErY1Qdgl8HOa75ZV/lGem9jStjVB2CXwc5rvllXF9Cvfj/ZTwEdhAXPMt8sv42pENBuFjzLfLMEtBDQbhY8y3yzBLQQ0G4WPMt8s/oD+odfvra3d+O17yd/GaiADsOCZ5lvVntA7x9/Fyn5JiYBHYUFzzLfrO6ALvr51T/73ne/kS7oZvdCQLtZ8CzzzWoO6Oc397726+XfffH+3o2fCuj0dvUB2GWw85pvVnNAT/z45tP3914V0Ont6gOwy2DnNd+s5h/lfP/Es06/zi5iVx+AXQY7r/lmdf8k0olfwOTX2UXs6gOwy2DnNd8sAS0EtJsFzzLfrO6X8HvvHN/4zK+zS9jVB2CXwc5rvlm+iVQIaDcLnmW+Wf1vY3rlV8u/++13vI0pYlcfgF0GO6/5Zl3FG+n3XnvttfiPIm12LwS0mwXPMt+s9h/l/M3N1U9y3vhBsp8COggLnmW+Wf2/TOTpv313/gz0z34S/XXKAjoKC55lvll+nV0hoN0seJb5ZgloIaDdLHiW+WZdVUB/lwrnkc3uhYB2s+BZ5pvVHtCnv/yTf1n+3+W++WsBTdjVB2CXwc5rvlndAf3s5t5XDgO6d+OdaEE3cqGAXvUhgWvu5W+kP/xZpH//8U1vpI/Y1f+CdxnsvOab1f6jnK8cvXL3o5wZu/oA7DLYec03q/u3MZXfB+q3MQXs6gOwy2DnNd8sv86uENBuFjzLfLM8Ay0EtJsFzzLfrPavgb76wr+f3mb3QkC7WfAs881qDuhne3vf/P3y7/7w870Tv1xZQCezqw/ALoOd13yzut8Hemfxe5hee+21xe9kSj4BFdBBWPAs883qDujTX+wd/Tq7v0r2U0AHYcGzzDfryn6d3T/6dXYZu/oA7DLYec03y29jKgS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfrK0K6H/+3Wz2+rv3Dm88+2B/NrvkDQHd3Qdgl8HOa75Z2xTQD2dLr/9scePJreWNNz66xA0B/XR3H4BdBjuv+WZtUUAfzl7/4cHB49uHNbw7e+ve4sZbn1z8hoB+ursPwC6Dndd8s7YnoM9uz360+Ov8OeX8r4/2lxl9cmvxfPSCNwR0YVcfgF0GO6/5Zm1PQJ/cWr0Ovzt77+Dgwezt5Y0Hl7ghoAu7+gDsMth5zTdrewJ6bBnQu4dPR+ev69++8A0BXdjVB2CXwc5rvlnbF9Dly/Fnt1evyR/tv/XJBW8cfvjXVzb75BcK6MZ3DeAiNg/o8lW5gAK7a+OAPly+jelEGd/46II36nU2ex7tJXw3LzGzzDdr217CP9x/ffFVzc2fgQroVR/gcix4lvlmbVlAH6zeRi+gG9vVB2CXwc5rvlnbFdAPZ0fv5/Rd+E3t6gOwy2DnNd+sbQros7uzN4++knn0xs7Vuz0vdENAF3b1AdhlsPOab9Y2BfTuiR/I9JNIm9rVB2CXwc5rvllbFNAHJ3+g/dnt2ZvHP+R+wRsCurCrD8Aug53XfLO2J6Cr36u0sPh65uOTv2bpgjcE9NPdfQB2Gey85pu1PQF9OCsBPXj8wfzv3l09sbzgDQHd3Qdgl8HOa75Z2xPQiW12LwS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBUkw/egAABTgSURBVM8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt+saxvQzVwooFd9SOCau/KAbvafAc9Au3mGlGW+Wdf2Gehm90JAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0EJAu1nwLPPNEtBCQLtZ8CzzzRLQQkC7WfAs880S0OJCAd3uyO7qA7DLYOc13ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt8sAS0EtJsFzzLfLAEtBLSbBc8y3ywBLQS0mwXPMt+s4QP67IP92ezde2f++Wb3QkC7WfAs880aPaBPbs0W3vhIQFd29QHYZbDzmm/W6AG9O3vr3sHj27O3PtmugF5dZHf1AdhlsPOab9bgAX20v3zu+eTW6z8T0EO7+gDsMth5zTdr8IA+mL29+ut7p/7NZvdCQLtZ8CzzzRo8oHdnP1r+9eEqpM9tdi8EtJsFzzLfrLED+uz26qX7o/2jL4J+fWWzC7YG9EImmhQwkEEDCnD12gN6+o1Mkz2xnuhCbQY78HADHuy85pt17V7CC+hVH+ByhhvwYOc13ywBXXe3JrpQm8EOPNyABzuv+WaNHdDJvwv/grs10YXaDHbg4QY82HnNN2vwgB69/3Oq94G+4G5NdKE2gx14uAEPdl7zzRo8oFP/JNIL7tZEF2oz2IGHG/Bg5zXfrMED+uz27M0pfxb+BXdrogu1GezAww14sPOab9bgAT14PO1vY3rB3ZroQm0GO/BwAx7svOabNXpADx5/MO/nu6effwroKIYb8GDnNd+s4QP6MpPdrYku1GawAw834MHOa75ZArrubk10oTaDHXi4AQ92XvPNEtB1d2uiC7UZ7MDDDXiw85pvloCuu1sTXajNYAcebsCDndd8swR03d2a6EJtBjvwcAMe7LzmmyWg6+7WRBdqM9iBhxvwYOc13ywBXXe3JrpQm8EOPNyABzuv+WYJ6Lq7NdGF2gx24OEGPNh5zTdLQNfdrYku1GawAw834MHOa75ZArrubk10oTaDHXi4AQ92XvPNEtB1d2uiC7UZ7MDDDXiw85pvloCuu1sTXajNYAcebsCDndd8swR03d2a6EJtBjvwcAMe7LzmmyWg6+7WRBdqM9iBhxvwYOc13ywBXXe3JrpQm8EOPNyABzuv+WYJ6Lq7NdGF2gx24OEGPNh5zTdLQNfdrYku1GawAw834MHOa75ZArrubk10oTaDHXi4AQ92XvPNEtB1d2uiC7UZ7MDDDXiw85pvloCuu1sTXajNYAcebsCDndd8swR03d2a6EJtBjvwcAMe7LzmmyWg6+7WRBdqM9iBhxvwYOc13ywBXXe3JrpQm8EOPNyABzuv+WYJ6Lq7NdGF2gx24OEGPNh5zTdLQNfdrYku1GawAw834MHOa75ZArrubk10oTaDHXi4AQ92XvPNEtB1d2uiC7UZ7MDDDXiw85pvloCuu1sTXajNYAcebsCDndd8swR03d2a6EJtBjvwcAMe7Lzmm3VtAzqRr3/9qk9wzRlwlvlmpeYroFyIAWeZb5aAns/jL8yAs8w3S0DP5/EXZsBZ5psloOfz+Asz4CzzzRLQ83n8hRlwlvlmCej5PP7CDDjLfLME9Hwef2EGnGW+WQIKsGUEFGBDAgqwIQEF2JCAAmxIQAE2JKAAGxJQgA1di4A++2B/Nnv33lUf41r5z7+bzV4/mmkZsGlP5dH+W58s/8Z8J/fsw/kU/+KHqxu5+V6HgD65NVt446OrPsg18uFypLPXf7a4UQZs2lN5dnt2GFDzndzjwynO/nZxIznf6xDQu7O37h08Pno0MoGHs9fn//Gez3T5OCsDNu2pPJithmi+U5v/t+nNewfP/vXwGUByvtcgoI/2l1v+5Nbh0yW+vPnj70eLv87/a/2jUwM27ak82l8F1Hwn93D1DPPB7O3wfK9BQJdDWv71vSs+ybXx5NbqFc7dxUzLgE17IvP/SP394ddAzXdqR08ADkXnew0Cenc1rIer0TCdZUDLgE17Indnb6++iWS+Uzt+ArAUne/4AX12e/Vk/Ph7mkxl+UKnDNi0J/Jw/vL9cIbmO7nF8P7jr2ezN//pID1fAeXllq93LHjA8j9NAhoyH94Hh9+Ff09A1zkxEm/9mNbD5Tcxy4BNexrLr42cCaj5TuPh4g1Mnxw8+3BWX0EF5nutAuq/2ZN6uP/64utFniFN78Hy+++egYY8nK2+RXR3/hLKM9DzeciFPFi9jd6CT+7R/nKKAhqymu8LRiqgZ/m+ZcSHs6N3yvku8dQezI7NX0ia79SOX58v/8Z34c939I4u75yb0LO7szePvkZUBmzaE6gBNd+pHT/PXLzXITvfaxBQP7sRcPfEj7r5SZmQ1ctI853c3dXzy9X36vwk0nkOf+7VTw9P6cHJYZYBm/Z0VgE138k92l/8vqXD78Jn53sNAnr0m1e87WMyq99Ys7D4L3kZsGlP5ugbGeY7uYf7h79NbPkFz+R8r0NADx4v3jX7rv9iT+bhrAS0Dti0p3L8nWDzndzjxW/9/Jt7Rzdi870WAQW4CgIKsCEBBdiQgAJsSEABNiSgABsSUIANCSjAhgQUYEMCCrAhAQXYkIACbEhAATYkoEzuzt7XPp7gMn/89t63LvYnn/7y5t7eV346wedc+vzmqydv3t/7yr9c7gJP37/sRzAoAWVyXzqgv/nTxcdfPKB39uZe3qzDy13YH79dL3X5gM4TPMl/Qth6AsrkvmxAVx9/4YB+fnPvv5zzCS97nDunPu0GAT1zDa4pAWVy3QH9bG/vnemOc+bZ4yYB/fymF/E7QUCZXH9Ab5z39c/LHefp+6drvElA55/01fV/iOEJKJMbOqCfncnlRgH9/Oa5Z+KaEFAmd7ZYX/z45t7ejW/+enljEcanv/zG3t5Xv3/0x/7tf8z/9Z9/vEzV/b2lb73oz73oeqs/f7JXy3+99yc/OfGvlyn+7fKfv7a83Oc3V3mef5qTTxZPPHU8eap1H37yUy7Mn8j6KugOEFAmdyagq4jt7f354tY8Of/1O4e3X1mWaR6bpa/8+HRAv/ntwxsvud6Nvzp4UUB/c/TpFpd/HtCnPz/5z+dXP7zqPIXvPL/081v1VGs+vHzK1Rl9I34HCCiTOx3QecMWTxb/8PPDgs7bM0/fxwdfvL96Ynhn/s8/PgzUMlXPX8Lv3fj+iT934nqv/Gr+hPA7q28enXoJP0/a1+af7ukv9g6fTB4d5/7y0xx88Z3Df35n9VH1FfrzV/CnT3Xeh5/+lGcPxfUkoEzuVEDndVlV5f4yKoswvrO4OX+Ot/iDx6+G758N6Mk/d+T4yd/8ny///KlWHRfxzunLvXry41ffu59fpL6CX32q06c698NPf8qDy7yLlYEJKJM7FdDnT/EOa3McwFVujv/9/F+cKl75c8+vd9TLVeTOBLQ+91td7vhPrbq7KmJ9Bf88p3dOnercDz/9KQ/OhJnrSUCZXA3oyZIs/83z79os03ni37/kKeOpV9nlWd7iT5wK6GeL7y/96mXHOflpSr6Prvit06eu+X7hh5/+lAdnnjZzPQkok7tz+hX3CfPcPH9xe7/ePIrZmbcxlcidKNPqb09/ufHwuz1f/f7vzx7nD7/953/4xt7RK//5k8dTTxSPP+eJ782f+Owv/fBTn/LsFLieBJTJxQNan9Ge/X7N4v1Hy2+J/6Qc5zffOHGKVSPrK/gS0FOnOv/D66c8OwWuJwFlcmcCWr8YeDagp57rfdlnoAu//Ydl7t55frnDtyW99r1//P3Ra/LFvzj1vvmXPwNd/+EnPuXZKXA9CSiTO/M10FqSU2E872ugLwro2q+BHn/iXxy+gXR1udXbkE5cYPFxp37k8uVfA73Qhx99yhfdba4jAWVyp5573Tnu22FUTofxnO/CvzCg94+f5X2294Lvwp9J3+Hlngft6NMs/ua/fbv+5PvzDz7+nIffdT/3w1/0HSffhd8JAsrkzr4PdHX78L2Tp8N4zvtAXxjQ9e8Dff6Go+fPQJ8X8P7x7w69s/fV07816eT7QF898cfP//DTn7KcnmtMQJncnfpNo+VPDv3k+evbM2G8f+Znfm789OnvXxrQkz+JtPwDpwI6/7gbP1j8zND7h09VV5dbvQZffNTRn58H/fTTxOfXOvz5qeNTnfvhpz/l2UNxPQkokzsd0Oc/C//iZ5ZPVx/wyv86foPQokwvDWj9Wfizrfr85tHnW/X18HKrn7/f++Yvjip3/LNOz/3x+Wv6n5dTnf/hpz7lgZ+F3xECyuTOBPTgix8vvkG9+l1FLwjjqd979Jt5jl79+OUBXf02pj9fvevyzJO9p798bfGuzKN/f3i5g+Vvdlq83/35d9hPv0f+oPw2pt+WU53/4ac+pd/GtCMElO3R/s6f+2e/0XP294Fe6sOP+JX0u0FAuWpX943rs799/lJPHV/04Uf8T5F2g4By1Y7flnT87fguL3yaePHnjuf8SU9Ad4SActXm3bzxg/nzud/c3OT/nfElfPHiJ5sXffL4kg+/1DUYnIBy5T47+hb2K79u/Kz3917y/5I//f+Fv+SHL/j/wu8KAeXq/eHnh9+kb43OZy8N9uc3L/Cl2Jd/+OKLo17A7wgBBdiQgAJsSEABNiSgABsSUIANCSjAhgQUYEMCCrAhAQXYkIACbEhAATYkoAAbElCADQkowIb+P0pTUyeVUKscAAAAAElFTkSuQmCC" width="672" /></p>
 <p>We can see from the histogram above that the length of ICU stays is very positively skewed. The median of the length of ICU stays is 2.06 days, and about half of our data lie between 1.13 days and 4.20 days. The minimum length of stay was less than half a day, and the maximum length of stay was almost 600 days.</p>
-<p>Why so many high <code>los</code>? Let’s see those outliers more than 100 days.</p>
-<pre class="r"><code>icustays_tble %&gt;% 
-  select(los) %&gt;% 
-  filter(los &gt;=100)</code></pre>
-<pre><code>## # A tibble: 11 x 1
-##      los
-##    &lt;dbl&gt;
-##  1  102.
-##  2  294.
-##  3  110.
-##  4  236.
-##  5  599.
-##  6  114.
-##  7  107.
-##  8  141.
-##  9  134.
-## 10  103.
-## 11  223.</code></pre>
 <ul>
 <li>First ICU unit</li>
 </ul>
@@ -1260,18 +1242,9 @@ for (i in vitalids) {
 </li>
 <li>an indicator variable whether the patient died within 30 days of hospital admission</li>
 </ul>
-<p>only getting the first ICU stay of each unique patient:</p>
-<p>First I’m going to make a mini tibble for admissions, icustays, patients, labevents, and chartevents.</p>
-<pre class="r"><code>admit &lt;- head(admissions_tble, n = 100)
-icu &lt;- icustays_tble %&gt;% 
-  arrange(subject_id) %&gt;% 
-  head(n = 50)
-patients &lt;- head(patients_tble)
-labevents &lt;- head(labevents_tble)
-chartevents &lt;- head(chartevents1)</code></pre>
-<p>First, we just want to have the first icustay of each unique patient</p>
-<pre class="r"><code>icu_unique &lt;- icu %&gt;% 
-  arrange(subject_id) %&gt;% # this just makes it easier for me (not necessary)
+<p><strong>Solution:</strong></p>
+<p>Only getting the first ICU stay of each unique patient that is an adult. Also creating an indicator for whether that patient died within 30 days of admission:</p>
+<pre class="r"><code>icustays_unique &lt;- icustays_tble %&gt;% 
   group_by(subject_id) %&gt;% 
   slice_min(intime) %&gt;% 
   left_join(admissions_tble) %&gt;% # allows us to have admittime
@@ -1282,38 +1255,115 @@ chartevents &lt;- head(chartevents1)</code></pre>
   filter(admit_age &gt;= 18) %&gt;% 
   # creating indicator for death within 30 days
   mutate(death30days = (deathtime - admittime) &lt; ddays(30)) %&gt;% 
-  print()</code></pre>
+  print(width = Inf)</code></pre>
 <pre><code>## Joining, by = c(&quot;subject_id&quot;, &quot;hadm_id&quot;)</code></pre>
 <pre><code>## Joining, by = &quot;subject_id&quot;</code></pre>
-<pre><code>## # A tibble: 34 x 28
-## # Groups:   subject_id [34]
-##    subject_id hadm_id stay_id first_careunit last_careunit intime             
-##         &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt;          &lt;chr&gt;         &lt;dttm&gt;             
-##  1   10000032  2.91e7  3.75e7 Medical Inten~ Medical Inte~ 2180-07-23 14:00:00
-##  2   10000980  2.69e7  3.67e7 Medical Inten~ Medical Inte~ 2189-06-27 08:42:00
-##  3   10001217  2.46e7  3.03e7 Surgical Inte~ Surgical Int~ 2157-11-20 19:18:02
-##  4   10001725  2.56e7  3.75e7 Medical/Surgi~ Medical/Surg~ 2110-04-11 15:52:22
-##  5   10001884  2.62e7  3.18e7 Medical Inten~ Medical Inte~ 2131-01-11 04:20:05
-##  6   10002013  2.36e7  3.71e7 Cardiac Vascu~ Cardiac Vasc~ 2160-05-18 10:00:53
-##  7   10002155  2.38e7  3.46e7 Coronary Care~ Coronary Car~ 2129-08-04 12:45:00
-##  8   10002223  2.25e7  3.99e7 Trauma SICU (~ Trauma SICU ~ 2158-01-15 08:01:49
-##  9   10002428  2.87e7  3.20e7 Medical Inten~ Medical Inte~ 2156-04-12 16:24:18
-## 10   10002443  2.13e7  3.52e7 Coronary Care~ Coronary Car~ 2183-10-18 00:47:00
-## # ... with 24 more rows, and 22 more variables: outtime &lt;dttm&gt;, los &lt;dbl&gt;,
-## #   admittime &lt;dttm&gt;, dischtime &lt;dttm&gt;, deathtime &lt;dttm&gt;, admission_type &lt;chr&gt;,
-## #   admission_location &lt;chr&gt;, discharge_location &lt;chr&gt;, insurance &lt;chr&gt;,
-## #   language &lt;chr&gt;, marital_status &lt;chr&gt;, ethnicity &lt;chr&gt;, edregtime &lt;dttm&gt;,
-## #   edouttime &lt;dttm&gt;, hospital_expire_flag &lt;dbl&gt;, gender &lt;chr&gt;,
-## #   anchor_age &lt;dbl&gt;, anchor_year &lt;dbl&gt;, anchor_year_group &lt;chr&gt;, dod &lt;lgl&gt;,
-## #   admit_age &lt;dbl&gt;, death30days &lt;lgl&gt;</code></pre>
-<p>So above, we have made an (abbreviated) data set that only has the first icu stay of each unique patient along with their admission and patient info + only adults.</p>
+<pre><code>## # A tibble: 50,048 x 28
+## # Groups:   subject_id [50,048]
+##    subject_id  hadm_id  stay_id first_careunit                                  
+##         &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt; &lt;chr&gt;                                           
+##  1   10000032 29079034 37529680 Medical Intensive Care Unit (MICU)              
+##  2   10000980 26913865 36742749 Medical Intensive Care Unit (MICU)              
+##  3   10001217 24597018 30327812 Surgical Intensive Care Unit (SICU)             
+##  4   10001725 25563031 37542711 Medical/Surgical Intensive Care Unit (MICU/SICU)
+##  5   10001884 26184834 31832304 Medical Intensive Care Unit (MICU)              
+##  6   10002013 23581541 37106138 Cardiac Vascular Intensive Care Unit (CVICU)    
+##  7   10002155 23822395 34599502 Coronary Care Unit (CCU)                        
+##  8   10002223 22494570 39908879 Trauma SICU (TSICU)                             
+##  9   10002428 28662225 31956612 Medical Intensive Care Unit (MICU)              
+## 10   10002443 21329021 35217462 Coronary Care Unit (CCU)                        
+##    last_careunit                                    intime             
+##    &lt;chr&gt;                                            &lt;dttm&gt;             
+##  1 Medical Intensive Care Unit (MICU)               2180-07-23 14:00:00
+##  2 Medical Intensive Care Unit (MICU)               2189-06-27 08:42:00
+##  3 Surgical Intensive Care Unit (SICU)              2157-11-20 19:18:02
+##  4 Medical/Surgical Intensive Care Unit (MICU/SICU) 2110-04-11 15:52:22
+##  5 Medical Intensive Care Unit (MICU)               2131-01-11 04:20:05
+##  6 Cardiac Vascular Intensive Care Unit (CVICU)     2160-05-18 10:00:53
+##  7 Coronary Care Unit (CCU)                         2129-08-04 12:45:00
+##  8 Trauma SICU (TSICU)                              2158-01-15 08:01:49
+##  9 Medical Intensive Care Unit (MICU)               2156-04-12 16:24:18
+## 10 Coronary Care Unit (CCU)                         2183-10-18 00:47:00
+##    outtime               los admittime           dischtime          
+##    &lt;dttm&gt;              &lt;dbl&gt; &lt;dttm&gt;              &lt;dttm&gt;             
+##  1 2180-07-23 23:50:47 0.410 2180-07-23 12:35:00 2180-07-25 17:55:00
+##  2 2189-06-27 20:38:27 0.498 2189-06-27 07:38:00 2189-07-03 03:00:00
+##  3 2157-11-21 22:08:00 1.12  2157-11-18 22:56:00 2157-11-25 18:00:00
+##  4 2110-04-12 23:59:56 1.34  2110-04-11 15:08:00 2110-04-14 15:00:00
+##  5 2131-01-20 08:27:30 9.17  2131-01-07 20:39:00 2131-01-20 05:15:00
+##  6 2160-05-19 17:33:33 1.31  2160-05-18 07:45:00 2160-05-23 13:30:00
+##  7 2129-08-10 17:02:38 6.18  2129-08-04 12:44:00 2129-08-18 16:53:00
+##  8 2158-01-16 15:19:24 1.30  2158-01-15 08:00:00 2158-01-20 19:29:00
+##  9 2156-04-19 18:13:35 7.08  2156-04-12 14:16:00 2156-04-29 16:26:00
+## 10 2183-10-20 18:48:03 2.75  2183-10-17 23:20:00 2183-10-20 18:47:00
+##    deathtime           admission_type              admission_location    
+##    &lt;dttm&gt;              &lt;chr&gt;                       &lt;chr&gt;                 
+##  1 NA                  EW EMER.                    EMERGENCY ROOM        
+##  2 NA                  EW EMER.                    EMERGENCY ROOM        
+##  3 NA                  EW EMER.                    EMERGENCY ROOM        
+##  4 NA                  EW EMER.                    PACU                  
+##  5 2131-01-20 05:15:00 OBSERVATION ADMIT           EMERGENCY ROOM        
+##  6 NA                  SURGICAL SAME DAY ADMISSION PHYSICIAN REFERRAL    
+##  7 NA                  EW EMER.                    PROCEDURE SITE        
+##  8 NA                  EW EMER.                    EMERGENCY ROOM        
+##  9 NA                  EW EMER.                    EMERGENCY ROOM        
+## 10 NA                  EW EMER.                    TRANSFER FROM HOSPITAL
+##    discharge_location           insurance language marital_status
+##    &lt;chr&gt;                        &lt;chr&gt;     &lt;chr&gt;    &lt;chr&gt;         
+##  1 HOME                         Medicaid  ENGLISH  WIDOWED       
+##  2 HOME HEALTH CARE             Medicare  ENGLISH  MARRIED       
+##  3 HOME HEALTH CARE             Other     ?        MARRIED       
+##  4 HOME                         Other     ENGLISH  MARRIED       
+##  5 DIED                         Medicare  ENGLISH  MARRIED       
+##  6 HOME HEALTH CARE             Medicare  ENGLISH  SINGLE        
+##  7 CHRONIC/LONG TERM ACUTE CARE Other     ENGLISH  MARRIED       
+##  8 HOME                         Other     ENGLISH  &lt;NA&gt;          
+##  9 SKILLED NURSING FACILITY     Medicare  ENGLISH  WIDOWED       
+## 10 HOME                         Other     ENGLISH  SINGLE        
+##    ethnicity              edregtime           edouttime          
+##    &lt;chr&gt;                  &lt;dttm&gt;              &lt;dttm&gt;             
+##  1 WHITE                  2180-07-23 05:54:00 2180-07-23 14:00:00
+##  2 BLACK/AFRICAN AMERICAN 2189-06-27 06:25:00 2189-06-27 08:42:00
+##  3 WHITE                  2157-11-18 17:38:00 2157-11-19 01:24:00
+##  4 WHITE                  NA                  NA                 
+##  5 BLACK/AFRICAN AMERICAN 2131-01-07 13:36:00 2131-01-07 22:13:00
+##  6 OTHER                  NA                  NA                 
+##  7 WHITE                  2129-08-04 11:00:00 2129-08-04 12:35:00
+##  8 UNABLE TO OBTAIN       2158-01-15 06:49:00 2158-01-15 07:36:00
+##  9 WHITE                  2156-04-12 09:56:00 2156-04-12 17:11:00
+## 10 WHITE                  2183-10-17 22:11:00 2183-10-18 00:47:00
+##    hospital_expire_flag gender anchor_age anchor_year anchor_year_group dod  
+##                   &lt;dbl&gt; &lt;chr&gt;       &lt;dbl&gt;       &lt;dbl&gt; &lt;chr&gt;             &lt;lgl&gt;
+##  1                    0 F              52        2180 2014 - 2016       NA   
+##  2                    0 F              73        2186 2008 - 2010       NA   
+##  3                    0 F              55        2157 2011 - 2013       NA   
+##  4                    0 F              46        2110 2011 - 2013       NA   
+##  5                    1 F              68        2122 2008 - 2010       NA   
+##  6                    0 F              53        2156 2008 - 2010       NA   
+##  7                    0 F              80        2128 2008 - 2010       NA   
+##  8                    0 M              21        2158 2008 - 2010       NA   
+##  9                    0 F              80        2155 2011 - 2013       NA   
+## 10                    0 M              53        2183 2017 - 2019       NA   
+##    admit_age death30days
+##        &lt;dbl&gt; &lt;lgl&gt;      
+##  1        52 NA         
+##  2        76 NA         
+##  3        55 NA         
+##  4        46 NA         
+##  5        77 TRUE       
+##  6        57 NA         
+##  7        81 NA         
+##  8        21 NA         
+##  9        81 NA         
+## 10        53 NA         
+## # ... with 50,038 more rows</code></pre>
 <p>So now to filter the labevents table so that we can join that into the above data set: (only keep first lab measurement for the above icu stays (match subject id and hospital stay id))</p>
-<pre class="r"><code>labmatch &lt;- labevents_tble %&gt;% 
+<pre class="r"><code>labevents_match &lt;- labevents_tble %&gt;% 
   # only keeping rows matching the subject and hospital stay id from above data set
-  semi_join(icu_unique, by = c(&quot;subject_id&quot;, &quot;hadm_id&quot;)) %&gt;% 
+  semi_join(icustays_unique, by = c(&quot;subject_id&quot;, &quot;hadm_id&quot;)) %&gt;% 
   # only want lab measurement taken after patient was admitted to the hospital:
-  left_join(select(icu_unique, subject_id, hadm_id, intime), by = c(&quot;subject_id&quot;, &quot;hadm_id&quot;)) %&gt;% 
-  mutate(charttime = ymd_hms(charttime), intime = ymd_hms(intime)) %&gt;% 
+  left_join(select(icustays_unique, subject_id, hadm_id, intime), by = c(&quot;subject_id&quot;, &quot;hadm_id&quot;)) %&gt;% 
+  mutate(charttime = ymd_hms(charttime)) %&gt;% 
   filter(charttime &gt;= intime) %&gt;% 
   # now we want to only keep the first lab measurements
   group_by(subject_id, itemid) %&gt;% 
@@ -1321,130 +1371,198 @@ chartevents &lt;- head(chartevents1)</code></pre>
   slice_head() %&gt;% 
   select(-intime, -charttime) %&gt;% 
   # now spread data, so each itemid has its own column:
-  spread(key = itemid, value = valuenum) %&gt;% 
-  print()</code></pre>
-<pre><code>## # A tibble: 34 x 13
-## # Groups:   subject_id [34]
-##    subject_id hadm_id `50813` `50882` `50893` `50902` `50912` `50931` `50960`
-##         &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;
-##  1   10000032  2.91e7    NA        21     9.3     102     0.5     115     2.3
-##  2   10000980  2.69e7    NA        23     9.2     103     2.2     144     2  
-##  3   10001217  2.46e7    NA        23     8.2     104     0.4     113     1.9
-##  4   10001725  2.56e7    NA        24     9.1     106     0.8     146     1.5
-##  5   10001884  2.62e7     1.5      33     9.8      96     1.1     148     2.2
-##  6   10002013  2.36e7     3.3      23    NA       109     1.1      98     2.1
-##  7   10002155  2.38e7    NA        25     8.8     106     0.9      95     2  
-##  8   10002223  2.25e7    NA        26     8.7     102     0.8      88     2  
-##  9   10002428  2.87e7     1.6      20     7.4      98     0.8      99     1.4
-## 10   10002443  2.13e7     1.7      20     7.6     101     0.8     226     1.6
-## # ... with 24 more rows, and 4 more variables: `50971` &lt;dbl&gt;, `50983` &lt;dbl&gt;,
-## #   `51221` &lt;dbl&gt;, `51301` &lt;dbl&gt;</code></pre>
+  spread(key = itemid, value = valuenum)</code></pre>
 <p>Getting more informative labels for the lab item ids:</p>
 <pre class="r"><code>for (i in 1:11) {
   for (j in 1:11) {
-    if (names(labmatch)[2+i] == labels[j, 1]) {
-      names(labmatch)[2+i] &lt;- labels[j, 2]
+    if (names(labevents_match)[2+i] == labels[j, 1]) {
+      names(labevents_match)[2+i] &lt;- labels[j, 2]
     }
   }
 }</code></pre>
 <p>Now to get a filtered chart events data frame (only the subject ids and hospital stay ids for the first icu stays per unique patient):</p>
-<pre class="r"><code>chartmatch &lt;- chartevents1 %&gt;% 
-  semi_join(icu_unique, by = c(&quot;subject_id&quot;, &quot;hadm_id&quot;)) %&gt;% 
-  left_join(select(icu_unique, subject_id, hadm_id, intime), by = c(&quot;subject_id&quot;, &quot;hadm_id&quot;)) %&gt;% 
-  mutate(charttime = ymd_hms(charttime), intime = ymd_hms(intime)) %&gt;% 
+<pre class="r"><code>chart_match &lt;- chartevents1 %&gt;% 
+  semi_join(icustays_unique, by = c(&quot;subject_id&quot;, &quot;hadm_id&quot;)) %&gt;% 
+  left_join(select(icustays_unique, subject_id, hadm_id, intime), by = c(&quot;subject_id&quot;, &quot;hadm_id&quot;)) %&gt;% 
+  mutate(charttime = ymd_hms(charttime)) %&gt;% 
   filter(charttime &gt;= intime) %&gt;% 
-  arrange(subject_id, charttime) %&gt;%  # not necessary, just for me
   group_by(subject_id, itemid) %&gt;% 
   arrange(charttime, .by_group = TRUE) %&gt;% 
   slice_head() %&gt;% 
   select(-charttime, -intime, -stay_id) %&gt;% 
-  spread(key = itemid, value = valuenum) %&gt;% 
-  #arrange(subject_id) %&gt;% # not necessary, just for me
-  print()</code></pre>
-<pre><code>## # A tibble: 34 x 9
-## # Groups:   subject_id [34]
-##    subject_id hadm_id `220045` `220050` `220052` `220179` `220181` `220210`
-##         &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
-##  1   10000032  2.91e7       91       NA       NA       84       56       24
-##  2   10000980  2.69e7       77       NA       NA      150       92       23
-##  3   10001217  2.46e7       86       NA       NA      151      104       18
-##  4   10001725  2.56e7       55       NA       NA       73       59       19
-##  5   10001884  2.62e7       38       NA       NA      180       46       10
-##  6   10002013  2.36e7       80      134       94      104       77       14
-##  7   10002155  2.38e7       68      115       82      126       78       18
-##  8   10002223  2.25e7      100       NA       NA      123       80       29
-##  9   10002428  2.87e7      124      102       69       87       53       25
-## 10   10002443  2.13e7       81       NA       NA      136       99       23
-## # ... with 24 more rows, and 1 more variable: `223761` &lt;dbl&gt;</code></pre>
-<pre class="r"><code>print(chartmatch, width = Inf)</code></pre>
-<pre><code>## # A tibble: 34 x 9
-## # Groups:   subject_id [34]
-##    subject_id  hadm_id `220045` `220050` `220052` `220179` `220181` `220210`
-##         &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
-##  1   10000032 29079034       91       NA       NA       84       56       24
-##  2   10000980 26913865       77       NA       NA      150       92       23
-##  3   10001217 24597018       86       NA       NA      151      104       18
-##  4   10001725 25563031       55       NA       NA       73       59       19
-##  5   10001884 26184834       38       NA       NA      180       46       10
-##  6   10002013 23581541       80      134       94      104       77       14
-##  7   10002155 23822395       68      115       82      126       78       18
-##  8   10002223 22494570      100       NA       NA      123       80       29
-##  9   10002428 28662225      124      102       69       87       53       25
-## 10   10002443 21329021       81       NA       NA      136       99       23
-##    `223761`
-##       &lt;dbl&gt;
-##  1     98.7
-##  2     98  
-##  3     98.5
-##  4     97.7
-##  5     98.1
-##  6     97.2
-##  7     95.9
-##  8     98.6
-##  9    103. 
-## 10     96.7
-## # ... with 24 more rows</code></pre>
+  spread(key = itemid, value = valuenum)</code></pre>
 <p>Changing the name of the itemid columns to make them more informative:</p>
 <pre class="r"><code>for (i in 1:7) {
   for (j in 1:7) {
-    if (names(chartmatch)[2+i] == vitallabs[j, 1]) {
-      names(chartmatch)[2+i] &lt;- vitallabs[j, 2]
+    if (names(chart_match)[2+i] == vitallabs[j, 1]) {
+      names(chart_match)[2+i] &lt;- vitallabs[j, 2]
     }
   }
 }</code></pre>
 <p>Now to combine all of these things:</p>
-<pre class="r"><code>combined &lt;- icu_unique %&gt;% 
-  full_join(labmatch, by = c(&quot;subject_id&quot;, &quot;hadm_id&quot;)) %&gt;% 
-  full_join(chartmatch, by = c(&quot;subject_id&quot;, &quot;hadm_id&quot;)) %&gt;% 
-  print()</code></pre>
-<pre><code>## # A tibble: 34 x 46
-## # Groups:   subject_id [34]
-##    subject_id hadm_id stay_id first_careunit last_careunit intime             
-##         &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt;          &lt;chr&gt;         &lt;dttm&gt;             
-##  1   10000032  2.91e7  3.75e7 Medical Inten~ Medical Inte~ 2180-07-23 14:00:00
-##  2   10000980  2.69e7  3.67e7 Medical Inten~ Medical Inte~ 2189-06-27 08:42:00
-##  3   10001217  2.46e7  3.03e7 Surgical Inte~ Surgical Int~ 2157-11-20 19:18:02
-##  4   10001725  2.56e7  3.75e7 Medical/Surgi~ Medical/Surg~ 2110-04-11 15:52:22
-##  5   10001884  2.62e7  3.18e7 Medical Inten~ Medical Inte~ 2131-01-11 04:20:05
-##  6   10002013  2.36e7  3.71e7 Cardiac Vascu~ Cardiac Vasc~ 2160-05-18 10:00:53
-##  7   10002155  2.38e7  3.46e7 Coronary Care~ Coronary Car~ 2129-08-04 12:45:00
-##  8   10002223  2.25e7  3.99e7 Trauma SICU (~ Trauma SICU ~ 2158-01-15 08:01:49
-##  9   10002428  2.87e7  3.20e7 Medical Inten~ Medical Inte~ 2156-04-12 16:24:18
-## 10   10002443  2.13e7  3.52e7 Coronary Care~ Coronary Car~ 2183-10-18 00:47:00
-## # ... with 24 more rows, and 40 more variables: outtime &lt;dttm&gt;, los &lt;dbl&gt;,
-## #   admittime &lt;dttm&gt;, dischtime &lt;dttm&gt;, deathtime &lt;dttm&gt;, admission_type &lt;chr&gt;,
-## #   admission_location &lt;chr&gt;, discharge_location &lt;chr&gt;, insurance &lt;chr&gt;,
-## #   language &lt;chr&gt;, marital_status &lt;chr&gt;, ethnicity &lt;chr&gt;, edregtime &lt;dttm&gt;,
-## #   edouttime &lt;dttm&gt;, hospital_expire_flag &lt;dbl&gt;, gender &lt;chr&gt;,
-## #   anchor_age &lt;dbl&gt;, anchor_year &lt;dbl&gt;, anchor_year_group &lt;chr&gt;, dod &lt;lgl&gt;,
-## #   admit_age &lt;dbl&gt;, death30days &lt;lgl&gt;, Lactate &lt;dbl&gt;, Bicarbonate &lt;dbl&gt;,
-## #   `Calcium, Total` &lt;dbl&gt;, Chloride &lt;dbl&gt;, Creatinine &lt;dbl&gt;, Glucose &lt;dbl&gt;,
-## #   Magnesium &lt;dbl&gt;, Potassium &lt;dbl&gt;, Sodium &lt;dbl&gt;, Hematocrit &lt;dbl&gt;, `White
-## #   Blood Cells` &lt;dbl&gt;, `Heart Rate` &lt;dbl&gt;, `Arterial Blood Pressure
-## #   systolic` &lt;dbl&gt;, `Arterial Blood Pressure mean` &lt;dbl&gt;, `Non Invasive Blood
-## #   Pressure systolic` &lt;dbl&gt;, `Non Invasive Blood Pressure mean` &lt;dbl&gt;,
-## #   `Respiratory Rate` &lt;dbl&gt;, `Temperature Fahrenheit` &lt;dbl&gt;</code></pre>
-<p>At the end of code, just show the first few observations of our final tibble.</p>
+<pre class="r"><code>combination &lt;- icustays_unique %&gt;% 
+  full_join(labevents_match, by = c(&quot;subject_id&quot;, &quot;hadm_id&quot;)) %&gt;% 
+  full_join(chart_match, by = c(&quot;subject_id&quot;, &quot;hadm_id&quot;)) %&gt;% 
+  print(width = Inf)</code></pre>
+<pre><code>## # A tibble: 50,048 x 46
+## # Groups:   subject_id [50,048]
+##    subject_id  hadm_id  stay_id first_careunit                                  
+##         &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt; &lt;chr&gt;                                           
+##  1   10000032 29079034 37529680 Medical Intensive Care Unit (MICU)              
+##  2   10000980 26913865 36742749 Medical Intensive Care Unit (MICU)              
+##  3   10001217 24597018 30327812 Surgical Intensive Care Unit (SICU)             
+##  4   10001725 25563031 37542711 Medical/Surgical Intensive Care Unit (MICU/SICU)
+##  5   10001884 26184834 31832304 Medical Intensive Care Unit (MICU)              
+##  6   10002013 23581541 37106138 Cardiac Vascular Intensive Care Unit (CVICU)    
+##  7   10002155 23822395 34599502 Coronary Care Unit (CCU)                        
+##  8   10002223 22494570 39908879 Trauma SICU (TSICU)                             
+##  9   10002428 28662225 31956612 Medical Intensive Care Unit (MICU)              
+## 10   10002443 21329021 35217462 Coronary Care Unit (CCU)                        
+##    last_careunit                                    intime             
+##    &lt;chr&gt;                                            &lt;dttm&gt;             
+##  1 Medical Intensive Care Unit (MICU)               2180-07-23 14:00:00
+##  2 Medical Intensive Care Unit (MICU)               2189-06-27 08:42:00
+##  3 Surgical Intensive Care Unit (SICU)              2157-11-20 19:18:02
+##  4 Medical/Surgical Intensive Care Unit (MICU/SICU) 2110-04-11 15:52:22
+##  5 Medical Intensive Care Unit (MICU)               2131-01-11 04:20:05
+##  6 Cardiac Vascular Intensive Care Unit (CVICU)     2160-05-18 10:00:53
+##  7 Coronary Care Unit (CCU)                         2129-08-04 12:45:00
+##  8 Trauma SICU (TSICU)                              2158-01-15 08:01:49
+##  9 Medical Intensive Care Unit (MICU)               2156-04-12 16:24:18
+## 10 Coronary Care Unit (CCU)                         2183-10-18 00:47:00
+##    outtime               los admittime           dischtime          
+##    &lt;dttm&gt;              &lt;dbl&gt; &lt;dttm&gt;              &lt;dttm&gt;             
+##  1 2180-07-23 23:50:47 0.410 2180-07-23 12:35:00 2180-07-25 17:55:00
+##  2 2189-06-27 20:38:27 0.498 2189-06-27 07:38:00 2189-07-03 03:00:00
+##  3 2157-11-21 22:08:00 1.12  2157-11-18 22:56:00 2157-11-25 18:00:00
+##  4 2110-04-12 23:59:56 1.34  2110-04-11 15:08:00 2110-04-14 15:00:00
+##  5 2131-01-20 08:27:30 9.17  2131-01-07 20:39:00 2131-01-20 05:15:00
+##  6 2160-05-19 17:33:33 1.31  2160-05-18 07:45:00 2160-05-23 13:30:00
+##  7 2129-08-10 17:02:38 6.18  2129-08-04 12:44:00 2129-08-18 16:53:00
+##  8 2158-01-16 15:19:24 1.30  2158-01-15 08:00:00 2158-01-20 19:29:00
+##  9 2156-04-19 18:13:35 7.08  2156-04-12 14:16:00 2156-04-29 16:26:00
+## 10 2183-10-20 18:48:03 2.75  2183-10-17 23:20:00 2183-10-20 18:47:00
+##    deathtime           admission_type              admission_location    
+##    &lt;dttm&gt;              &lt;chr&gt;                       &lt;chr&gt;                 
+##  1 NA                  EW EMER.                    EMERGENCY ROOM        
+##  2 NA                  EW EMER.                    EMERGENCY ROOM        
+##  3 NA                  EW EMER.                    EMERGENCY ROOM        
+##  4 NA                  EW EMER.                    PACU                  
+##  5 2131-01-20 05:15:00 OBSERVATION ADMIT           EMERGENCY ROOM        
+##  6 NA                  SURGICAL SAME DAY ADMISSION PHYSICIAN REFERRAL    
+##  7 NA                  EW EMER.                    PROCEDURE SITE        
+##  8 NA                  EW EMER.                    EMERGENCY ROOM        
+##  9 NA                  EW EMER.                    EMERGENCY ROOM        
+## 10 NA                  EW EMER.                    TRANSFER FROM HOSPITAL
+##    discharge_location           insurance language marital_status
+##    &lt;chr&gt;                        &lt;chr&gt;     &lt;chr&gt;    &lt;chr&gt;         
+##  1 HOME                         Medicaid  ENGLISH  WIDOWED       
+##  2 HOME HEALTH CARE             Medicare  ENGLISH  MARRIED       
+##  3 HOME HEALTH CARE             Other     ?        MARRIED       
+##  4 HOME                         Other     ENGLISH  MARRIED       
+##  5 DIED                         Medicare  ENGLISH  MARRIED       
+##  6 HOME HEALTH CARE             Medicare  ENGLISH  SINGLE        
+##  7 CHRONIC/LONG TERM ACUTE CARE Other     ENGLISH  MARRIED       
+##  8 HOME                         Other     ENGLISH  &lt;NA&gt;          
+##  9 SKILLED NURSING FACILITY     Medicare  ENGLISH  WIDOWED       
+## 10 HOME                         Other     ENGLISH  SINGLE        
+##    ethnicity              edregtime           edouttime          
+##    &lt;chr&gt;                  &lt;dttm&gt;              &lt;dttm&gt;             
+##  1 WHITE                  2180-07-23 05:54:00 2180-07-23 14:00:00
+##  2 BLACK/AFRICAN AMERICAN 2189-06-27 06:25:00 2189-06-27 08:42:00
+##  3 WHITE                  2157-11-18 17:38:00 2157-11-19 01:24:00
+##  4 WHITE                  NA                  NA                 
+##  5 BLACK/AFRICAN AMERICAN 2131-01-07 13:36:00 2131-01-07 22:13:00
+##  6 OTHER                  NA                  NA                 
+##  7 WHITE                  2129-08-04 11:00:00 2129-08-04 12:35:00
+##  8 UNABLE TO OBTAIN       2158-01-15 06:49:00 2158-01-15 07:36:00
+##  9 WHITE                  2156-04-12 09:56:00 2156-04-12 17:11:00
+## 10 WHITE                  2183-10-17 22:11:00 2183-10-18 00:47:00
+##    hospital_expire_flag gender anchor_age anchor_year anchor_year_group dod  
+##                   &lt;dbl&gt; &lt;chr&gt;       &lt;dbl&gt;       &lt;dbl&gt; &lt;chr&gt;             &lt;lgl&gt;
+##  1                    0 F              52        2180 2014 - 2016       NA   
+##  2                    0 F              73        2186 2008 - 2010       NA   
+##  3                    0 F              55        2157 2011 - 2013       NA   
+##  4                    0 F              46        2110 2011 - 2013       NA   
+##  5                    1 F              68        2122 2008 - 2010       NA   
+##  6                    0 F              53        2156 2008 - 2010       NA   
+##  7                    0 F              80        2128 2008 - 2010       NA   
+##  8                    0 M              21        2158 2008 - 2010       NA   
+##  9                    0 F              80        2155 2011 - 2013       NA   
+## 10                    0 M              53        2183 2017 - 2019       NA   
+##    admit_age death30days Lactate Bicarbonate `Calcium, Total` Chloride
+##        &lt;dbl&gt; &lt;lgl&gt;         &lt;dbl&gt;       &lt;dbl&gt;            &lt;dbl&gt;    &lt;dbl&gt;
+##  1        52 NA             NA            21              9.3      102
+##  2        76 NA             NA            23              9.2      103
+##  3        55 NA             NA            23              8.2      104
+##  4        46 NA             NA            24              9.1      106
+##  5        77 TRUE            1.5          33              9.8       96
+##  6        57 NA              3.3          23             NA        109
+##  7        81 NA             NA            25              8.8      106
+##  8        21 NA             NA            26              8.7      102
+##  9        81 NA              1.6          20              7.4       98
+## 10        53 NA              1.7          20              7.6      101
+##    Creatinine Glucose Magnesium Potassium Sodium Hematocrit `White Blood Cells`
+##         &lt;dbl&gt;   &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;  &lt;dbl&gt;      &lt;dbl&gt;               &lt;dbl&gt;
+##  1        0.5     115       2.3       4.7    132       34.8                 4.1
+##  2        2.2     144       2         4.2    139       30.8                 5.4
+##  3        0.4     113       1.9       3.6    138       33.6                19  
+##  4        0.8     146       1.5       3.9    140       39.1                17  
+##  5        1.1     148       2.2       4      136       36                  18.4
+##  6        1.1      98       2.1       4      140       28.6                18.2
+##  7        0.9      95       2         4.5    139       37.9                 5.5
+##  8        0.8      88       2         3.9    138       32.5                10.1
+##  9        0.8      99       1.4       3.9    129       28.7                22.4
+## 10        0.8     226       1.6       5.2    133       43.4                20.7
+##    `Heart Rate` `Arterial Blood Pressure systolic`
+##           &lt;dbl&gt;                              &lt;dbl&gt;
+##  1           91                                 NA
+##  2           77                                 NA
+##  3           86                                 NA
+##  4           55                                 NA
+##  5           38                                 NA
+##  6           80                                134
+##  7           68                                115
+##  8          100                                 NA
+##  9          124                                102
+## 10           81                                 NA
+##    `Arterial Blood Pressure mean` `Non Invasive Blood Pressure systolic`
+##                             &lt;dbl&gt;                                  &lt;dbl&gt;
+##  1                             NA                                     84
+##  2                             NA                                    150
+##  3                             NA                                    151
+##  4                             NA                                     73
+##  5                             NA                                    180
+##  6                             94                                    104
+##  7                             82                                    126
+##  8                             NA                                    123
+##  9                             69                                     87
+## 10                             NA                                    136
+##    `Non Invasive Blood Pressure mean` `Respiratory Rate`
+##                                 &lt;dbl&gt;              &lt;dbl&gt;
+##  1                                 56                 24
+##  2                                 92                 23
+##  3                                104                 18
+##  4                                 59                 19
+##  5                                 46                 10
+##  6                                 77                 14
+##  7                                 78                 18
+##  8                                 80                 29
+##  9                                 53                 25
+## 10                                 99                 23
+##    `Temperature Fahrenheit`
+##                       &lt;dbl&gt;
+##  1                     98.7
+##  2                     98  
+##  3                     98.5
+##  4                     97.7
+##  5                     98.1
+##  6                     97.2
+##  7                     95.9
+##  8                     98.6
+##  9                    103. 
+## 10                     96.7
+## # ... with 50,038 more rows</code></pre>
 </div>
 
 
