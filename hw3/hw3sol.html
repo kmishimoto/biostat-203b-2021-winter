@@ -825,180 +825,191 @@ dbname &lt;- &#39;mimiciv&#39;
 if (!dir.exists(&quot;mimiciv_shiny&quot;)) {
   dir.create(&quot;mimiciv_shiny&quot;)
 }</code></pre>
-<pre class="r"><code>icu_pat_adm &lt;- icustays_tble %&gt;% 
-  group_by(subject_id) %&gt;% 
-  slice_min(intime) %&gt;% # taking only the first ICU stay of each unique patient
-  left_join(admissions_tble, by = c(&quot;subject_id&quot;, &quot;hadm_id&quot;)) %&gt;% 
-  left_join(patients_tble, by = &quot;subject_id&quot;) %&gt;% 
-  filter((year(admittime) - anchor_year + anchor_age) &gt;= 18) %&gt;% 
-  collect()
-
-icu_uniq &lt;- icustays_tble %&gt;% 
-  group_by(subject_id) %&gt;% 
-  slice_min(intime) %&gt;% # taking only the first ICU stay of each unique patient
-  left_join(admissions_tble, by = c(&quot;subject_id&quot;, &quot;hadm_id&quot;)) %&gt;% 
-  left_join(patients_tble, by = &quot;subject_id&quot;) %&gt;% 
-  filter((year(admittime) - anchor_year + anchor_age) &gt;= 18)</code></pre>
-<pre class="r"><code>lab_sub &lt;- labevents_tble %&gt;% 
-  semi_join(icu_uniq, by = c(&quot;subject_id&quot;, &quot;hadm_id&quot;)) %&gt;% 
-  collect()</code></pre>
-<pre class="r"><code>chart_sub &lt;- chartevents_tble %&gt;% 
-  semi_join(icu_uniq, by = c(&quot;subject_id&quot;, &quot;hadm_id&quot;, &quot;stay_id&quot;)) %&gt;% 
-  collect()</code></pre>
-<pre class="r"><code>cohort &lt;- icu_pat_adm %&gt;% 
-  left_join(lab_sub, by = c(&quot;subject_id&quot;, &quot;hadm_id&quot;)) %&gt;% 
-  left_join(chart_sub, by = c(&quot;subject_id&quot;, &quot;hadm_id&quot;, &quot;stay_id&quot;)) %&gt;% 
-  mutate(death30days = (deathtime - admittime) &lt; ddays(30)) %&gt;%
-  print(width = Inf) %&gt;% 
-  saveRDS(file = &quot;mimiciv_shiny/icu_cohort.rds&quot;)</code></pre>
-<pre><code>## # A tibble: 50,048 x 45
-## # Groups:   subject_id [50,048]
-##    subject_id  hadm_id  stay_id first_careunit                                  
-##         &lt;int&gt;    &lt;int&gt;    &lt;int&gt; &lt;chr&gt;                                           
-##  1   17601342 25265986 31836017 Coronary Care Unit (CCU)                        
-##  2   12973162 24845215 31054603 Surgical Intensive Care Unit (SICU)             
-##  3   18602402 22303045 39174103 Medical/Surgical Intensive Care Unit (MICU/SICU)
-##  4   16137597 22760563 30048912 Trauma SICU (TSICU)                             
-##  5   14068957 26940015 33789406 Medical/Surgical Intensive Care Unit (MICU/SICU)
-##  6   17827681 20189032 34276169 Surgical Intensive Care Unit (SICU)             
-##  7   10734403 26588273 34123607 Medical Intensive Care Unit (MICU)              
-##  8   12537266 27845175 33225641 Medical/Surgical Intensive Care Unit (MICU/SICU)
-##  9   11062332 21920312 38974640 Medical Intensive Care Unit (MICU)              
-## 10   12721056 22845904 34782699 Cardiac Vascular Intensive Care Unit (CVICU)    
-##    last_careunit                                    intime             
-##    &lt;chr&gt;                                            &lt;dttm&gt;             
-##  1 Cardiac Vascular Intensive Care Unit (CVICU)     2146-04-03 01:05:55
-##  2 Surgical Intensive Care Unit (SICU)              2161-07-03 18:58:12
-##  3 Medical/Surgical Intensive Care Unit (MICU/SICU) 2163-06-02 01:38:17
-##  4 Trauma SICU (TSICU)                              2182-01-19 17:59:00
-##  5 Medical/Surgical Intensive Care Unit (MICU/SICU) 2130-04-07 10:00:40
-##  6 Surgical Intensive Care Unit (SICU)              2181-11-13 01:50:00
-##  7 Medical Intensive Care Unit (MICU)               2110-06-20 22:27:00
-##  8 Medical/Surgical Intensive Care Unit (MICU/SICU) 2111-09-04 03:53:03
-##  9 Medical Intensive Care Unit (MICU)               2132-08-14 02:51:00
-## 10 Cardiac Vascular Intensive Care Unit (CVICU)     2184-09-09 14:20:58
-##    outtime               los admittime           dischtime          
-##    &lt;dttm&gt;              &lt;dbl&gt; &lt;dttm&gt;              &lt;dttm&gt;             
-##  1 2146-04-12 20:46:28  9.82 2146-04-03 01:05:00 2146-04-15 16:20:00
-##  2 2161-07-05 17:34:34  1.94 2161-07-03 17:53:00 2161-07-06 16:55:00
-##  3 2163-06-03 19:08:05  1.73 2163-06-02 01:37:00 2163-06-05 10:14:00
-##  4 2182-01-20 21:20:11  1.14 2182-01-19 16:49:00 2182-01-27 18:00:00
-##  5 2130-04-09 16:49:03  2.28 2130-04-07 10:00:00 2130-04-10 18:44:00
-##  6 2181-11-14 22:35:32  1.86 2181-11-13 00:13:00 2181-11-18 15:15:00
-##  7 2110-06-24 20:37:21  3.92 2110-06-20 14:45:00 2110-06-24 18:15:00
-##  8 2111-09-11 18:11:57  7.60 2111-09-04 03:52:00 2111-09-16 16:14:00
-##  9 2132-08-18 11:25:46  4.36 2132-08-14 01:47:00 2132-08-18 22:15:00
-## 10 2184-09-10 14:38:35  1.01 2184-09-09 14:18:00 2184-09-13 16:30:00
-##    deathtime           admission_type admission_location     discharge_location
-##    &lt;dttm&gt;              &lt;chr&gt;          &lt;chr&gt;                  &lt;chr&gt;             
-##  1 NA                  URGENT         TRANSFER FROM HOSPITAL REHAB             
-##  2 NA                  URGENT         TRANSFER FROM HOSPITAL REHAB             
-##  3 NA                  DIRECT EMER.   CLINIC REFERRAL        HOME              
-##  4 NA                  EW EMER.       EMERGENCY ROOM         HOME              
-##  5 NA                  URGENT         TRANSFER FROM HOSPITAL HOME              
-##  6 NA                  EW EMER.       EMERGENCY ROOM         HOME              
-##  7 2110-06-24 18:15:00 URGENT         TRANSFER FROM HOSPITAL &lt;NA&gt;              
-##  8 NA                  URGENT         TRANSFER FROM HOSPITAL HOME              
-##  9 2132-08-18 22:15:00 EW EMER.       EMERGENCY ROOM         &lt;NA&gt;              
-## 10 NA                  EW EMER.       PROCEDURE SITE         HOME HEALTH CARE  
-##    insurance language marital_status ethnicity        edregtime          
-##    &lt;chr&gt;     &lt;chr&gt;    &lt;chr&gt;          &lt;chr&gt;            &lt;dttm&gt;             
-##  1 Other     ENGLISH  DIVORCED       WHITE            NA                 
-##  2 Medicare  ENGLISH  MARRIED        WHITE            2161-07-03 12:06:00
-##  3 Other     ENGLISH  MARRIED        ASIAN            NA                 
-##  4 Other     ENGLISH  &lt;NA&gt;           WHITE            2182-01-19 14:53:00
-##  5 Other     ENGLISH  &lt;NA&gt;           UNKNOWN          NA                 
-##  6 Medicaid  ENGLISH  &lt;NA&gt;           UNKNOWN          2181-11-12 21:57:00
-##  7 Other     ENGLISH  &lt;NA&gt;           UNABLE TO OBTAIN NA                 
-##  8 Other     ENGLISH  &lt;NA&gt;           WHITE            NA                 
-##  9 Other     ENGLISH  &lt;NA&gt;           OTHER            2132-08-13 23:03:00
-## 10 Medicare  ENGLISH  &lt;NA&gt;           OTHER            2184-09-09 12:14:00
-##    edouttime           hospital_expire_flag gender anchor_age anchor_year
-##    &lt;dttm&gt;                             &lt;int&gt; &lt;chr&gt;       &lt;int&gt;       &lt;int&gt;
-##  1 NA                                     0 M              68        2146
-##  2 2161-07-03 18:55:00                    0 M              81        2161
-##  3 NA                                     0 F              26        2160
-##  4 2182-01-19 17:59:00                    0 M              45        2182
-##  5 NA                                     0 F              44        2130
-##  6 2181-11-13 01:50:00                    0 F              31        2181
-##  7 NA                                     1 M              79        2110
-##  8 NA                                     0 F              32        2111
-##  9 2132-08-14 02:51:00                    1 M              63        2132
-## 10 2184-09-09 13:21:00                    0 F              84        2184
-##    anchor_year_group dod        bicarbonate calcium chloride creatinine glucose
-##    &lt;chr&gt;             &lt;date&gt;           &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;      &lt;dbl&gt;   &lt;dbl&gt;
-##  1 2014 - 2016       NA                  24     8.4      102        1.2     154
-##  2 2014 - 2016       NA                  24     9.8      101        1.6     141
-##  3 2008 - 2010       NA                  24     8.4      107        0.3      89
-##  4 2008 - 2010       NA                  25     8        107        1        99
-##  5 2014 - 2016       NA                  25     8.8      101        0.5     115
-##  6 2014 - 2016       NA                  15     8.5       92        1        72
-##  7 2008 - 2010       NA                  32     8.1      102        1       196
-##  8 2014 - 2016       NA                  19     8.4      102        0.4     113
-##  9 2008 - 2010       NA                  22     8.5      123        3.7     367
-## 10 2014 - 2016       NA                  22     8.2      103        0.8     138
-##    magnesium potassium sodium hematocrit   wbc lactate heart_rate
-##        &lt;dbl&gt;     &lt;dbl&gt;  &lt;dbl&gt;      &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;      &lt;dbl&gt;
-##  1       2.1       4.3    139       34.8  16.7     1          101
-##  2       2.4       4.2    140       46.7  11.5    NA           81
-##  3       1.9       3.4    138       25.6   5       1.3        116
-##  4       2         4.2    139       33.4  18.5    NA           73
-##  5       2.2       3.3    140       31.1  11.2    NA           92
-##  6       1.9       4.2    127       40.8   7.9     1.6        112
-##  7       2.1       4.6    141       38.8  38.6     2.2        128
-##  8       1.5       4.4    136       29.2  18.7     2          101
-##  9       3.7       4.4    160       41.5  13.6     2           80
-## 10       1.8       3.3    138       29.8   7.4     1           75
-##    non_invasive_blood_pressure_systolic non_invasive_blood_pressure_mean
-##                                   &lt;dbl&gt;                            &lt;dbl&gt;
-##  1                                  123                               69
-##  2                                  128                               77
-##  3                                   91                               60
-##  4                                  134                               83
-##  5                                  114                               80
-##  6                                  101                               77
-##  7                                   90                               66
-##  8                                  150                               96
-##  9                                  160                              119
-## 10                                   NA                               NA
-##    respiratory_rate temperature_fahrenheit arterial_blood_pressure_systolic
-##               &lt;dbl&gt;                  &lt;dbl&gt;                            &lt;dbl&gt;
-##  1               25                   98                                107
-##  2               18                   98.7                               NA
-##  3               23                   97.9                               NA
-##  4               12                   99                                 NA
-##  5               26                   97.5                               NA
-##  6               21                  101                                 NA
-##  7               24                   97.6                               89
-##  8               24                   99.3                              107
-##  9               18                   95.7                              105
-## 10               16                   93.3                              148
-##    arterial_blood_pressure_mean death30days
-##                           &lt;dbl&gt; &lt;lgl&gt;      
-##  1                          153 NA         
-##  2                           NA NA         
-##  3                           NA NA         
-##  4                           NA NA         
-##  5                           NA NA         
-##  6                           NA NA         
-##  7                          -15 TRUE       
-##  8                           81 NA         
-##  9                           83 TRUE       
-## 10                          108 NA         
-## # … with 50,038 more rows</code></pre>
 <pre class="r"><code>icu_cohort &lt;- icustays_tble %&gt;% 
   group_by(subject_id) %&gt;% 
-  slice_min(intime) %&gt;% # taking only the first ICU stay of each unique patient
+  filter(rank(intime)== 1) %&gt;% 
+  # need to ungroup
   left_join(admissions_tble, by = c(&quot;subject_id&quot;, &quot;hadm_id&quot;)) %&gt;% 
   left_join(patients_tble, by = &quot;subject_id&quot;) %&gt;% 
   filter((year(admittime) - anchor_year + anchor_age) &gt;= 18) %&gt;% 
   left_join(labevents_tble, by = c(&quot;subject_id&quot;, &quot;hadm_id&quot;)) %&gt;% 
   left_join(chartevents_tble, by = c(&quot;subject_id&quot;, &quot;hadm_id&quot;, &quot;stay_id&quot;)) %&gt;% 
   show_query() %&gt;%
+  as_tibble() %&gt;% 
   collect() %&gt;% 
-  mutate(death30days = (deathtime - admittime) &lt; ddays(30)) %&gt;%
-  print(width = Inf)
-  # saveRDS(file = &quot;mimciv_shiny/icu_cohort.rds&quot;)</code></pre>
+  mutate(death30days = (deathtime - admittime) &lt; ddays(30), 
+    admit_age = year(admittime) - anchor_year + anchor_age) %&gt;% 
+  print(width = Inf) %&gt;% 
+  saveRDS(file = &quot;mimiciv_shiny/icu_cohort.rds&quot;)</code></pre>
+<pre><code>## &lt;SQL&gt;
+## SELECT &quot;LHS&quot;.&quot;subject_id&quot; AS &quot;subject_id&quot;, &quot;LHS&quot;.&quot;hadm_id&quot; AS &quot;hadm_id&quot;, &quot;LHS&quot;.&quot;stay_id&quot; AS &quot;stay_id&quot;, &quot;first_careunit&quot;, &quot;last_careunit&quot;, &quot;intime&quot;, &quot;outtime&quot;, &quot;los&quot;, &quot;admittime&quot;, &quot;dischtime&quot;, &quot;deathtime&quot;, &quot;admission_type&quot;, &quot;admission_location&quot;, &quot;discharge_location&quot;, &quot;insurance&quot;, &quot;language&quot;, &quot;marital_status&quot;, &quot;ethnicity&quot;, &quot;edregtime&quot;, &quot;edouttime&quot;, &quot;hospital_expire_flag&quot;, &quot;gender&quot;, &quot;anchor_age&quot;, &quot;anchor_year&quot;, &quot;anchor_year_group&quot;, &quot;dod&quot;, &quot;bicarbonate&quot;, &quot;calcium&quot;, &quot;chloride&quot;, &quot;creatinine&quot;, &quot;glucose&quot;, &quot;magnesium&quot;, &quot;potassium&quot;, &quot;sodium&quot;, &quot;hematocrit&quot;, &quot;wbc&quot;, &quot;lactate&quot;, &quot;heart_rate&quot;, &quot;non_invasive_blood_pressure_systolic&quot;, &quot;non_invasive_blood_pressure_mean&quot;, &quot;respiratory_rate&quot;, &quot;temperature_fahrenheit&quot;, &quot;arterial_blood_pressure_systolic&quot;, &quot;arterial_blood_pressure_mean&quot;
+## FROM (SELECT &quot;LHS&quot;.&quot;subject_id&quot; AS &quot;subject_id&quot;, &quot;LHS&quot;.&quot;hadm_id&quot; AS &quot;hadm_id&quot;, &quot;stay_id&quot;, &quot;first_careunit&quot;, &quot;last_careunit&quot;, &quot;intime&quot;, &quot;outtime&quot;, &quot;los&quot;, &quot;admittime&quot;, &quot;dischtime&quot;, &quot;deathtime&quot;, &quot;admission_type&quot;, &quot;admission_location&quot;, &quot;discharge_location&quot;, &quot;insurance&quot;, &quot;language&quot;, &quot;marital_status&quot;, &quot;ethnicity&quot;, &quot;edregtime&quot;, &quot;edouttime&quot;, &quot;hospital_expire_flag&quot;, &quot;gender&quot;, &quot;anchor_age&quot;, &quot;anchor_year&quot;, &quot;anchor_year_group&quot;, &quot;dod&quot;, &quot;bicarbonate&quot;, &quot;calcium&quot;, &quot;chloride&quot;, &quot;creatinine&quot;, &quot;glucose&quot;, &quot;magnesium&quot;, &quot;potassium&quot;, &quot;sodium&quot;, &quot;hematocrit&quot;, &quot;wbc&quot;, &quot;lactate&quot;
+## FROM (SELECT *
+## FROM (SELECT &quot;LHS&quot;.&quot;subject_id&quot; AS &quot;subject_id&quot;, &quot;hadm_id&quot;, &quot;stay_id&quot;, &quot;first_careunit&quot;, &quot;last_careunit&quot;, &quot;intime&quot;, &quot;outtime&quot;, &quot;los&quot;, &quot;admittime&quot;, &quot;dischtime&quot;, &quot;deathtime&quot;, &quot;admission_type&quot;, &quot;admission_location&quot;, &quot;discharge_location&quot;, &quot;insurance&quot;, &quot;language&quot;, &quot;marital_status&quot;, &quot;ethnicity&quot;, &quot;edregtime&quot;, &quot;edouttime&quot;, &quot;hospital_expire_flag&quot;, &quot;gender&quot;, &quot;anchor_age&quot;, &quot;anchor_year&quot;, &quot;anchor_year_group&quot;, &quot;dod&quot;
+## FROM (SELECT &quot;LHS&quot;.&quot;subject_id&quot; AS &quot;subject_id&quot;, &quot;LHS&quot;.&quot;hadm_id&quot; AS &quot;hadm_id&quot;, &quot;stay_id&quot;, &quot;first_careunit&quot;, &quot;last_careunit&quot;, &quot;intime&quot;, &quot;outtime&quot;, &quot;los&quot;, &quot;admittime&quot;, &quot;dischtime&quot;, &quot;deathtime&quot;, &quot;admission_type&quot;, &quot;admission_location&quot;, &quot;discharge_location&quot;, &quot;insurance&quot;, &quot;language&quot;, &quot;marital_status&quot;, &quot;ethnicity&quot;, &quot;edregtime&quot;, &quot;edouttime&quot;, &quot;hospital_expire_flag&quot;
+## FROM (SELECT &quot;subject_id&quot;, &quot;hadm_id&quot;, &quot;stay_id&quot;, &quot;first_careunit&quot;, &quot;last_careunit&quot;, &quot;intime&quot;, &quot;outtime&quot;, &quot;los&quot;
+## FROM (SELECT &quot;subject_id&quot;, &quot;hadm_id&quot;, &quot;stay_id&quot;, &quot;first_careunit&quot;, &quot;last_careunit&quot;, &quot;intime&quot;, &quot;outtime&quot;, &quot;los&quot;, RANK() OVER (PARTITION BY &quot;subject_id&quot; ORDER BY &quot;intime&quot;) AS &quot;q01&quot;
+## FROM &quot;mimic_icu&quot;.&quot;icustays&quot;) &quot;q01&quot;
+## WHERE (&quot;q01&quot; = 1.0)) &quot;LHS&quot;
+## LEFT JOIN &quot;mimic_core&quot;.&quot;admissions&quot; AS &quot;RHS&quot;
+## ON (&quot;LHS&quot;.&quot;subject_id&quot; = &quot;RHS&quot;.&quot;subject_id&quot; AND &quot;LHS&quot;.&quot;hadm_id&quot; = &quot;RHS&quot;.&quot;hadm_id&quot;)
+## ) &quot;LHS&quot;
+## LEFT JOIN &quot;mimic_core&quot;.&quot;patients&quot; AS &quot;RHS&quot;
+## ON (&quot;LHS&quot;.&quot;subject_id&quot; = &quot;RHS&quot;.&quot;subject_id&quot;)
+## ) &quot;q01&quot;
+## WHERE ((EXTRACT(year FROM &quot;admittime&quot;) - &quot;anchor_year&quot; + &quot;anchor_age&quot;) &gt;= 18.0)) &quot;LHS&quot;
+## LEFT JOIN &quot;public&quot;.&quot;mimic_labevents_icu&quot; AS &quot;RHS&quot;
+## ON (&quot;LHS&quot;.&quot;subject_id&quot; = &quot;RHS&quot;.&quot;subject_id&quot; AND &quot;LHS&quot;.&quot;hadm_id&quot; = &quot;RHS&quot;.&quot;hadm_id&quot;)
+## ) &quot;LHS&quot;
+## LEFT JOIN &quot;public&quot;.&quot;mimic_chartevents_icu&quot; AS &quot;RHS&quot;
+## ON (&quot;LHS&quot;.&quot;subject_id&quot; = &quot;RHS&quot;.&quot;subject_id&quot; AND &quot;LHS&quot;.&quot;hadm_id&quot; = &quot;RHS&quot;.&quot;hadm_id&quot; AND &quot;LHS&quot;.&quot;stay_id&quot; = &quot;RHS&quot;.&quot;stay_id&quot;)
+## 
+## # A tibble: 50,048 x 46
+##    subject_id  hadm_id  stay_id first_careunit                                  
+##         &lt;int&gt;    &lt;int&gt;    &lt;int&gt; &lt;chr&gt;                                           
+##  1   10000980 26913865 36742749 Medical Intensive Care Unit (MICU)              
+##  2   10004733 27411876 37003946 Medical/Surgical Intensive Care Unit (MICU/SICU)
+##  3   10006821 23295760 30272829 Medical/Surgical Intensive Care Unit (MICU/SICU)
+##  4   10009628 25926192 31786068 Cardiac Vascular Intensive Care Unit (CVICU)    
+##  5   10012261 27493974 30741264 Trauma SICU (TSICU)                             
+##  6   10012552 27089790 36574633 Cardiac Vascular Intensive Care Unit (CVICU)    
+##  7   10013419 29669860 31631748 Surgical Intensive Care Unit (SICU)             
+##  8   10014610 23258342 30950011 Cardiac Vascular Intensive Care Unit (CVICU)    
+##  9   10016742 29281842 39410091 Surgical Intensive Care Unit (SICU)             
+## 10   10017308 29888008 36392624 Neuro Surgical Intensive Care Unit (Neuro SICU) 
+##    last_careunit                                    intime             
+##    &lt;chr&gt;                                            &lt;dttm&gt;             
+##  1 Medical Intensive Care Unit (MICU)               2189-06-27 08:42:00
+##  2 Medical/Surgical Intensive Care Unit (MICU/SICU) 2174-12-04 11:28:24
+##  3 Medical/Surgical Intensive Care Unit (MICU/SICU) 2182-10-24 20:38:16
+##  4 Cardiac Vascular Intensive Care Unit (CVICU)     2153-09-19 09:54:49
+##  5 Trauma SICU (TSICU)                              2170-05-11 18:50:00
+##  6 Cardiac Vascular Intensive Care Unit (CVICU)     2140-03-25 14:37:26
+##  7 Surgical Intensive Care Unit (SICU)              2167-03-31 13:15:00
+##  8 Cardiac Vascular Intensive Care Unit (CVICU)     2173-12-20 09:55:34
+##  9 Surgical Intensive Care Unit (SICU)              2178-07-03 22:45:00
+## 10 Neuro Intermediate                               2142-08-06 09:56:53
+##    outtime                los admittime           dischtime          
+##    &lt;dttm&gt;               &lt;dbl&gt; &lt;dttm&gt;              &lt;dttm&gt;             
+##  1 2189-06-27 20:38:27  0.498 2189-06-27 07:38:00 2189-07-03 03:00:00
+##  2 2174-12-12 20:03:01  8.36  2174-12-04 11:28:00 2174-12-27 14:00:00
+##  3 2182-10-26 06:02:42  1.39  2182-10-24 20:36:00 2182-10-26 18:00:00
+##  4 2153-09-21 16:39:06  2.28  2153-09-17 17:08:00 2153-09-25 13:20:00
+##  5 2170-05-14 23:59:03  3.21  2170-05-11 17:09:00 2170-05-15 18:40:00
+##  6 2140-03-28 18:25:54  3.16  2140-03-22 17:18:00 2140-03-30 14:10:00
+##  7 2167-04-01 14:56:13  1.07  2167-03-31 12:03:00 2167-04-01 13:00:00
+##  8 2173-12-24 06:12:53  3.85  2173-12-19 11:00:00 2173-12-26 14:15:00
+##  9 2178-07-08 20:34:44  4.91  2178-07-03 21:13:00 2178-07-08 20:20:00
+## 10 2142-08-16 11:41:42 10.1   2142-08-05 18:43:00 2142-08-16 11:01:00
+##    deathtime           admission_type admission_location    
+##    &lt;dttm&gt;              &lt;chr&gt;          &lt;chr&gt;                 
+##  1 NA                  EW EMER.       EMERGENCY ROOM        
+##  2 NA                  URGENT         TRANSFER FROM HOSPITAL
+##  3 NA                  EW EMER.       PROCEDURE SITE        
+##  4 NA                  URGENT         TRANSFER FROM HOSPITAL
+##  5 NA                  EW EMER.       EMERGENCY ROOM        
+##  6 NA                  URGENT         TRANSFER FROM HOSPITAL
+##  7 NA                  EW EMER.       EMERGENCY ROOM        
+##  8 NA                  ELECTIVE       PHYSICIAN REFERRAL    
+##  9 NA                  EW EMER.       EMERGENCY ROOM        
+## 10 NA                  EW EMER.       TRANSFER FROM HOSPITAL
+##    discharge_location       insurance language marital_status
+##    &lt;chr&gt;                    &lt;chr&gt;     &lt;chr&gt;    &lt;chr&gt;         
+##  1 HOME HEALTH CARE         Medicare  ENGLISH  MARRIED       
+##  2 HOME HEALTH CARE         Medicaid  ENGLISH  SINGLE        
+##  3 ACUTE HOSPITAL           Other     ENGLISH  MARRIED       
+##  4 HOME HEALTH CARE         Medicaid  ?        MARRIED       
+##  5 HOME HEALTH CARE         Medicare  ENGLISH  MARRIED       
+##  6 HOME HEALTH CARE         Medicare  ENGLISH  MARRIED       
+##  7 HOME                     Medicare  ENGLISH  SINGLE        
+##  8 SKILLED NURSING FACILITY Medicare  ENGLISH  MARRIED       
+##  9 SKILLED NURSING FACILITY Medicaid  ENGLISH  SINGLE        
+## 10 HOME                     Other     ENGLISH  MARRIED       
+##    ethnicity              edregtime           edouttime          
+##    &lt;chr&gt;                  &lt;dttm&gt;              &lt;dttm&gt;             
+##  1 BLACK/AFRICAN AMERICAN 2189-06-27 06:25:00 2189-06-27 08:42:00
+##  2 UNKNOWN                NA                  NA                 
+##  3 WHITE                  NA                  NA                 
+##  4 HISPANIC/LATINO        NA                  NA                 
+##  5 BLACK/AFRICAN AMERICAN 2170-05-11 12:54:00 2170-05-11 18:50:00
+##  6 UNKNOWN                NA                  NA                 
+##  7 WHITE                  2167-03-31 10:55:00 2167-03-31 13:15:00
+##  8 BLACK/AFRICAN AMERICAN NA                  NA                 
+##  9 BLACK/AFRICAN AMERICAN 2178-07-03 17:39:00 2178-07-03 22:45:00
+## 10 WHITE                  2142-08-05 10:13:00 2142-08-06 10:21:00
+##    hospital_expire_flag gender anchor_age anchor_year anchor_year_group
+##                   &lt;int&gt; &lt;chr&gt;       &lt;int&gt;       &lt;int&gt; &lt;chr&gt;            
+##  1                    0 F              73        2186 2008 - 2010      
+##  2                    0 M              51        2174 2014 - 2016      
+##  3                    0 F              61        2182 2008 - 2010      
+##  4                    0 M              58        2153 2011 - 2013      
+##  5                    0 M              68        2168 2008 - 2010      
+##  6                    0 M              78        2140 2014 - 2016      
+##  7                    0 M              40        2167 2008 - 2010      
+##  8                    0 M              66        2166 2008 - 2010      
+##  9                    0 F              58        2178 2014 - 2016      
+## 10                    0 F              60        2142 2017 - 2019      
+##    dod        bicarbonate calcium chloride creatinine glucose magnesium
+##    &lt;date&gt;           &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;      &lt;dbl&gt;   &lt;dbl&gt;     &lt;dbl&gt;
+##  1 NA                  23     9.2      103        2.2     144       2  
+##  2 NA                  24     9.5      109        3.4      86       2.2
+##  3 NA                  19     8        107        0.8      89       1.7
+##  4 NA                  23     7.5      109        0.7     124       1.9
+##  5 NA                  26     9.7      103        1       204       2.3
+##  6 NA                  23     8.4      113        1       115       2.2
+##  7 NA                  26     7.7      107        0.6     102       1.8
+##  8 NA                  19     8.2      108        1.2     115       2.1
+##  9 NA                  33    10        103        0.3     116       2  
+## 10 NA                  21     9        106        0.5     159       2.1
+##    potassium sodium hematocrit   wbc lactate heart_rate
+##        &lt;dbl&gt;  &lt;dbl&gt;      &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;      &lt;dbl&gt;
+##  1       4.2    139       30.8   5.4    NA           77
+##  2       3.7    146       30.9   7.4     0.8         87
+##  3       3.6    142       26.4  20.7     1          114
+##  4       3.8    139       21.2   9.2     3.6         79
+##  5       4.5    140       36.6   6.7    NA           69
+##  6       3.4    142       25.9   5.3     1.7         70
+##  7       4      135       31.6   4.4    NA           88
+##  8       3.5    139       32.1  14.1     3.9         93
+##  9       3.7    143       35.5  13.2     1.1        108
+## 10       4.1    139       34.6   4.9    NA           66
+##    non_invasive_blood_pressure_systolic non_invasive_blood_pressure_mean
+##                                   &lt;dbl&gt;                            &lt;dbl&gt;
+##  1                                  150                               92
+##  2                                  167                              117
+##  3                                  109                               70
+##  4                                   85                               60
+##  5                                  125                               83
+##  6                                   93                               62
+##  7                                  114                               83
+##  8                                  114                               84
+##  9                                  103                               69
+## 10                                  102                               75
+##    respiratory_rate temperature_fahrenheit arterial_blood_pressure_systolic
+##               &lt;dbl&gt;                  &lt;dbl&gt;                            &lt;dbl&gt;
+##  1               23                   98                                 NA
+##  2               22                   99.4                               NA
+##  3               20                   98.8                               NA
+##  4               16                   98.6                               92
+##  5               15                   96.9                               NA
+##  6               18                   98.5                              147
+##  7               19                   97.6                               NA
+##  8               16                   97.7                              102
+##  9               20                   99                                 NA
+## 10               20                   98.7                              115
+##    arterial_blood_pressure_mean death30days admit_age
+##                           &lt;dbl&gt; &lt;lgl&gt;           &lt;int&gt;
+##  1                           NA NA                 76
+##  2                           NA NA                 51
+##  3                           NA NA                 61
+##  4                           61 NA                 58
+##  5                           NA NA                 70
+##  6                           97 NA                 78
+##  7                           NA NA                 40
+##  8                           76 NA                 73
+##  9                           NA NA                 58
+## 10                           66 NA                 60
+## # … with 50,038 more rows</code></pre>
 <p>Close database connection and clear workspace.</p>
 <pre class="r"><code>dbDisconnect(con)</code></pre>
 <pre><code>## [1] TRUE</code></pre>

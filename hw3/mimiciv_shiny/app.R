@@ -1,6 +1,6 @@
 # Load packages ----
 library(shiny)
-library(ggplot2)
+library(tidyverse)
 
 # Load data ----
 icu_cohort <- readRDS("icu_cohort.rds")
