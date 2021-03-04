@@ -172,7 +172,7 @@ cohort <- icu_pat_adm %>%
 
 
 
-```{r}
+```{r, eval = F}
 icu_cohort <- icustays_tble %>% 
   group_by(subject_id) %>% 
   slice_min(intime) %>% # taking only the first ICU stay of each unique patient
@@ -186,11 +186,6 @@ icu_cohort <- icustays_tble %>%
   mutate(death30days = (deathtime - admittime) < ddays(30)) %>%
   print(width = Inf)
   # saveRDS(file = "mimciv_shiny/icu_cohort.rds")
-  
-```
-
-```{r, eval = F}
-icu_cohort
 ```
 
 
@@ -203,3 +198,5 @@ rm(list = ls())
 ## Q2. Shiny app
 
 Develop a Shiny app for exploring the ICU cohort data created in Q1. The app should reside in the `mimiciv_shiny` folder. The app should provide easy access to the graphical and numerical summaries of variables (demographics, lab measurements, vitals) in the ICU cohort.
+
+

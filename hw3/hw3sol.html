@@ -999,7 +999,6 @@ icu_uniq &lt;- icustays_tble %&gt;%
   mutate(death30days = (deathtime - admittime) &lt; ddays(30)) %&gt;%
   print(width = Inf)
   # saveRDS(file = &quot;mimciv_shiny/icu_cohort.rds&quot;)</code></pre>
-<pre class="r"><code>icu_cohort</code></pre>
 <p>Close database connection and clear workspace.</p>
 <pre class="r"><code>dbDisconnect(con)</code></pre>
 <pre><code>## [1] TRUE</code></pre>
