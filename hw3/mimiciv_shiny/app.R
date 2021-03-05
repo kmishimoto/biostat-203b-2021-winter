@@ -19,13 +19,64 @@ ui <- fluidPage(
                              label = "Choose a variable to display:",
                              choices = c("Insurance", "Language", 
                                          "Marital Status", "Ethnicity", 
-                                         "Gender"),
-                             selected = "Ethnicity")
+                                         "Gender", "Age at Admission"),
+                             selected = "Ethnicity"),
+                 
+                 
+                 radioButtons("prop", 
+                              label = "Choose to display frequencies of percentages",
+                              choices = c("Frequencies", "Percentages"), 
+                              selected = "Frequencies"),
+                 
+                 sliderInput("binsd", 
+                             label = "Choose number of bins for histogram", 
+                             min = 1,
+                             max = 50, 
+                             value = 30)
+                 
                ),
+               
+               
                mainPanel(textOutput("demoStat"),
+                         tableOutput("demoTab"),
                          plotOutput("barPlot"))
              )
     ),
+    
+    tabPanel("Hospital Info",
+             sidebarLayout(
+               sidebarPanel(
+                 helpText("Hospital admission and stay information"),
+                 
+                 selectInput("hosp",
+                             label = "Choose a variable to display:",
+                             choices = c("First Care Unit",
+                                         "Last Care Unit",
+                                         "Length of Stay",
+                                         "Admission Type",
+                                         "Admission Location"),
+                             selected = "First Care Unit"),
+                 
+                 radioButtons("prop2", 
+                              label = "Choose to display frequencies of percentages",
+                              choices = c("Frequencies", "Percentages"), 
+                              selected = "Frequencies"),
+                 
+                 sliderInput("binsh", 
+                             label = "Choose number of bins for histogram", 
+                             min = 1,
+                             max = 50, 
+                             value = 30)
+                 
+               ),
+               
+               
+               mainPanel(textOutput("hospMiss"),
+                         tableOutput("hospTab"),
+                         plotOutput("hospPlot"))
+             )
+    ),
+    
     tabPanel("Lab Measurements",
              sidebarLayout(
                helpText("Lab Measurement Data for ICU Patients"),
@@ -92,17 +143,34 @@ ui <- fluidPage(
 server <- function(input, output) {
   
   output$barPlot <- renderPlot({
-    demo <- switch(input$demovar,
-                   "Insurance" = icu_cohort$insurance,
-                   "Language" = icu_cohort$language,
-                   "Marital Status" = icu_cohort$marital_status,
-                   "Ethnicity" = icu_cohort$ethnicity,
-                   "Gender" = icu_cohort$gender)
+    Factor <- switch(input$demovar,
+                     "Insurance" = icu_cohort$insurance,
+                     "Language" = icu_cohort$language,
+                     "Marital Status" = icu_cohort$marital_status,
+                     "Ethnicity" = icu_cohort$ethnicity,
+                     "Gender" = icu_cohort$gender,
+                     "Age at Admission" = icu_cohort$admit_age)
     
-    ggplot() +
-      geom_bar(mapping = aes(x = demo)) +
-      theme(axis.text.x = element_text(angle = 70, vjust = 1, hjust=1)) +
-      xlab(input$demovar)
+    if (input$demovar == "Age at Admission"){
+      ggplot() +
+        geom_histogram(mapping = aes(x = Factor), bins = input$binsd) +
+        xlab("Age at Admission (years)") +
+        ylab("Count")
+    } else if(input$prop == "Frequencies") {
+      ggplot() +
+        geom_bar(mapping = aes(x = Factor)) +
+        theme(axis.text.x = element_text(angle = 70, vjust = 1, hjust=1)) +
+        xlab(input$demovar) +
+        ylab("Count")
+    } else {
+      tab <- round(prop.table(table(Factor, useNA = "ifany")), 2)*100
+      tab <- as.data.frame(tab, responseName = "Percentages")
+      ggplot() +
+        geom_col(mapping = aes(x = tab$Factor, y = tab$Percentages))+
+        theme(axis.text.x = element_text(angle = 70, vjust = 1, hjust=1)) +
+        xlab(input$demovar) +
+        ylab("Percentages")
+    }
   })
   
   output$demoStat <- renderText({
@@ -111,10 +179,102 @@ server <- function(input, output) {
                    "Language" = icu_cohort$language,
                    "Marital Status" = icu_cohort$marital_status,
                    "Ethnicity" = icu_cohort$ethnicity,
-                   "Gender" = icu_cohort$gender)
+                   "Gender" = icu_cohort$gender,
+                   "Age at Admission" = icu_cohort$admit_age)
     miss <- sum(is.na(demo))
     missperc <- round(miss / length(demo)*100, 2)
     print(paste("Number of Missing Values: ", miss, "(", missperc, "%)"))
+  })
+  
+  output$demoTab <- renderTable({
+    Factor <- switch(input$demovar,
+                     "Insurance" = icu_cohort$insurance,
+                     "Language" = icu_cohort$language,
+                     "Marital Status" = icu_cohort$marital_status,
+                     "Ethnicity" = icu_cohort$ethnicity,
+                     "Gender" = icu_cohort$gender,
+                     "Age at Admission" = icu_cohort$admit_age)
+    if (input$demovar == "Age at Admission") {
+      mean <- mean(Factor, na.rm = T)
+      sd <- sd(Factor, na.rm = T)
+      count <- length(Factor)
+      miss <- sum(is.na(Factor))
+      min <- min(Factor, na.rm = T)
+      max <- max(Factor, na.rm = T)
+      med <- median(Factor, na.rm = T)
+      
+      table1 <- matrix(c(as.integer(count), min, max, med, mean, sd, miss), nrow = 1)
+      colnames(table1) <- c("Count", "Min", "Max", "Median", "Mean", "StdDev",
+                            "Number Missing")
+      
+      xtable(table1, type = html)
+    } else if (input$prop == "Frequencies") {
+      tab <- table(Factor, useNA = "ifany")
+    } else {
+      tab <- round(prop.table(table(Factor, useNA = "ifany")), 2)*100
+      tab <- as.data.frame(tab, responseName = "Percentages")
+      xtable(tab, type = html)
+    }
+  })
+  
+  output$hospPlot <- renderPlot({
+    Factor <- switch(input$hosp,
+                     "First Care Unit" = icu_cohort$first_careunit,
+                     "Last Care Unit" = icu_cohort$last_careunit,
+                     "Length of Stay" = icu_cohort$los,
+                     "Admission Type" = icu_cohort$admission_type,
+                     "Admission Location" = icu_cohort$admission_location)
+    
+    if (input$hosp == "Length of Stay"){
+      ggplot() + 
+        geom_histogram(mapping = aes(x = Factor), bins = input$binsh) +
+        xlab(input$hosp) + 
+        ylab("Count")
+    } else if (input$prop2 == "Frequencies" & input$hosp != "Length of Stay") {
+      ggplot() +
+        geom_bar(mapping = aes(x = Factor)) +
+        theme(axis.text.x = element_text(angle = 70, vjust = 1, hjust=1)) +
+        xlab("Length of Stay (days)") +
+        ylab("Count")
+    } else if (input$prop2 == "Percentages" & input$hosp != "Length of Stay") {
+      tab <- round(prop.table(table(Factor, useNA = "ifany")), 2)*100
+      tab <- as.data.frame(tab, responseName = "Percentages")
+      ggplot() +
+        geom_col(mapping = aes(x = tab$Factor, y = tab$Percentages))+
+        theme(axis.text.x = element_text(angle = 70, vjust = 1, hjust=1)) +
+        xlab(input$hosp) +
+        ylab("Percentages")
+    }
+  })
+  
+  output$hospTab <- renderTable({
+    Factor <- switch(input$hosp,
+                     "First Care Unit" = icu_cohort$first_careunit,
+                     "Last Care Unit" = icu_cohort$last_careunit,
+                     "Length of Stay" = icu_cohort$los,
+                     "Admission Type" = icu_cohort$admission_type,
+                     "Admission Location" = icu_cohort$admission_location)
+    if (input$hosp == "Length of Stay") {
+      mean <- mean(Factor, na.rm = T)
+      sd <- sd(Factor, na.rm = T)
+      count <- length(Factor)
+      miss <- sum(is.na(Factor))
+      min <- min(Factor, na.rm = T)
+      max <- max(Factor, na.rm = T)
+      med <- median(Factor, na.rm = T)
+      
+      table1 <- matrix(c(as.integer(count), min, max, med, mean, sd, miss), nrow = 1)
+      colnames(table1) <- c("Count", "Min", "Max", "Median", "Mean", "StdDev",
+                            "Number Missing")
+      
+      xtable(table1, type = html)
+    } else if(input$prop2 == "Frequencies") {
+      tab <- table(Factor, useNA = "ifany")
+    } else {
+      tab <- round(prop.table(table(Factor, useNA = "ifany")), 2)*100
+      tab <- as.data.frame(tab, responseName = "Percentages")
+      xtable(tab, type = html)
+    }
   })
   
   
