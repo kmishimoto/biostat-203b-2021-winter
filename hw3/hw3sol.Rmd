@@ -134,7 +134,7 @@ if (!dir.exists("mimiciv_shiny")) {
 icu_cohort <- icustays_tble %>% 
   group_by(subject_id) %>% 
   filter(rank(intime)== 1) %>% 
-  # need to ungroup
+  ungroup(subject_id) %>% 
   left_join(admissions_tble, by = c("subject_id", "hadm_id")) %>% 
   left_join(patients_tble, by = "subject_id") %>% 
   filter((year(admittime) - anchor_year + anchor_age) >= 18) %>% 

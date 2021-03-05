@@ -828,7 +828,7 @@ if (!dir.exists(&quot;mimiciv_shiny&quot;)) {
 <pre class="r"><code>icu_cohort &lt;- icustays_tble %&gt;% 
   group_by(subject_id) %&gt;% 
   filter(rank(intime)== 1) %&gt;% 
-  # need to ungroup
+  ungroup(subject_id) %&gt;% 
   left_join(admissions_tble, by = c(&quot;subject_id&quot;, &quot;hadm_id&quot;)) %&gt;% 
   left_join(patients_tble, by = &quot;subject_id&quot;) %&gt;% 
   filter((year(admittime) - anchor_year + anchor_age) &gt;= 18) %&gt;% 
