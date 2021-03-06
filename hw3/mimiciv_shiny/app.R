@@ -10,7 +10,7 @@ icu_cohort <- readRDS("icu_cohort.rds")
 # Source functions for tables and plots -----
 source("helpers.R")
 
-# Defining some indicator variables I will use later:
+# Defining some indicator variables for whether the patient survived a month:
 deadind <- icu_cohort$death30days
 dead <- deadind == 1 & !is.na(deadind)
 alive <- deadind == 0 | is.na(deadind)
@@ -33,12 +33,14 @@ ui <- fluidPage(
                              selected = "Ethnicity"),
                  
                  radioButtons("prop", 
-                              label = "Choose to display frequencies or percentages (for categorical data)",
+                              label = "Choose to display frequencies or 
+                              percentages (for categorical data)",
                               choices = c("Frequencies", "Percentages"), 
                               selected = "Frequencies"),
                  
                  radioButtons("comp", 
-                              label = "Look at all data or compare across whether patient survived to 30 days after admission?",
+                          label = "Look at all data or compare across whether 
+                          patient survived to 30 days after admission?",
                               choices = c("All Data", "Compare"), 
                               selected = "All Data"),
                  
@@ -61,7 +63,8 @@ ui <- fluidPage(
     tabPanel("Hospital Info",
              sidebarLayout(
                sidebarPanel(
-                 helpText("Hospital admission and stay information for ICU patients"),
+                 helpText("Hospital admission and stay information 
+                          for ICU patients"),
                  
                  selectInput("hosp",
                              label = "Choose a variable to display:",
@@ -73,12 +76,14 @@ ui <- fluidPage(
                              selected = "First Care Unit"),
                  
                  radioButtons("prop2", 
-                              label = "Choose to display frequencies or percentages (for categorical data)",
+                              label = "Choose to display frequencies or 
+                              percentages (for categorical data)",
                               choices = c("Frequencies", "Percentages"), 
                               selected = "Frequencies"),
                  
                  radioButtons("comph", 
-                              label = "Look at all data or compare across whether patient survived to 30 days after admission?",
+                          label = "Look at all data or compare across whether 
+                          patient survived to 30 days after admission?",
                               choices = c("All Data", "Compare"), 
                               selected = "All Data"),
                  
@@ -122,7 +127,8 @@ ui <- fluidPage(
                               selected = "Boxplot"),
                  
                  radioButtons("compl", 
-                              label = "Look at all data or compare across whether patient survived to 30 days after admission?",
+                            label = "Look at all data or compare across whether 
+                            patient survived to 30 days after admission?",
                               choices = c("All Data", "Compare"), 
                               selected = "All Data")
                  
@@ -141,15 +147,15 @@ ui <- fluidPage(
                  helpText("Vital Measurement Data for ICU Patients"),
                  
                  selectInput("vital",
-                             label = "Choose vital measurement to display",
-                             choices = c("Heart Rate",
-                                         "Non-Invasive Blood Pressure - Systolic",
-                                         "Non-Invasive Blood Pressure - Mean",
-                                         "Respiratory Rate",
-                                         "Temperature (F)",
-                                         "Arterial Blood Pressure - Systolic",
-                                         "Arterial Blood Pressure - Mean"),
-                             selected = "Heart Rate"),
+                          label = "Choose vital measurement to display",
+                          choices = c("Heart Rate",
+                                       "Non-Invasive Blood Pressure - Systolic",
+                                       "Non-Invasive Blood Pressure - Mean",
+                                       "Respiratory Rate",
+                                       "Temperature (F)",
+                                       "Arterial Blood Pressure - Systolic",
+                                       "Arterial Blood Pressure - Mean"),
+                          selected = "Heart Rate"),
                  sliderInput("bins2", 
                              label = "Choose number of bins for histogram", 
                              min = 1,
@@ -162,9 +168,10 @@ ui <- fluidPage(
                               selected = "Boxplot"),
                  
                  radioButtons("compc", 
-                              label = "Look at all data or compare across whether patient survived to 30 days after admission?",
-                              choices = c("All Data", "Compare"), 
-                              selected = "All Data")
+                            label = "Look at all data or compare across whether 
+                            patient survived to 30 days after admission?",
+                            choices = c("All Data", "Compare"), 
+                            selected = "All Data")
                ),
                
                mainPanel(h1(textOutput("vitHead")),
@@ -258,7 +265,8 @@ server <- function(input, output) {
       } else if (input$comp == "Compare") {
         tab0 <- table(Factor[alive], useNA = "ifany")
         tab1 <- table(Factor[dead], useNA = "ifany")
-        table <- left_join(as.data.frame(tab0), as.data.frame(tab1), by = "Var1")
+        table <- left_join(as.data.frame(tab0), as.data.frame(tab1), 
+                           by = "Var1")
         names(table) <- c(input$demovar, "Frequency (Alive at 30 Days)", 
                           "Frequency (Dead at 30 Days)")
         xtable(table, type = html)
@@ -267,15 +275,13 @@ server <- function(input, output) {
       
       if (input$comp == "All Data") {
         tabper1(Factor, input$demovar)
-        # tab <- round(prop.table(table(Factor, useNA = "ifany")), 2)*100
-        # tab <- as.data.frame(tab, responseName = "Percentages")
-        # xtable(tab, type = html)
       } else if (input$comp == "Compare") {
         tab0 <- round(prop.table(table(Factor[alive], useNA = "ifany")), 
                       2) * 100
         tab1 <- round(prop.table(table(Factor[dead], useNA = "ifany")), 
                       2) * 100
-        table <- left_join(as.data.frame(tab0), as.data.frame(tab1), by = "Var1")
+        table <- left_join(as.data.frame(tab0), as.data.frame(tab1), 
+                           by = "Var1")
         names(table) <- c(input$demovar, "Percent (Alive at 30 Days)", 
                           "Percent (Dead at 30 Days)")
         xtable(table, type = html)
@@ -342,7 +348,8 @@ server <- function(input, output) {
       } else if (input$comph == "Compare") {
         tab0 <- table(Factor[alive], useNA = "ifany")
         tab1 <- table(Factor[dead], useNA = "ifany")
-        table <- left_join(as.data.frame(tab0), as.data.frame(tab1), by = "Var1")
+        table <- left_join(as.data.frame(tab0), as.data.frame(tab1), 
+                           by = "Var1")
         names(table) <- c(input$hosp, "Frequency (Alive at 30 Days)",
                           "Frequency (Dead at 30 Days)")
         xtable(table, type = html)
@@ -356,7 +363,8 @@ server <- function(input, output) {
                       2) * 100
         tab1 <- round(prop.table(table(Factor[dead], useNA = "ifany")),
                       2) * 100
-        table <- left_join(as.data.frame(tab0), as.data.frame(tab1), by = "Var1")
+        table <- left_join(as.data.frame(tab0), as.data.frame(tab1), 
+                           by = "Var1")
         names(table) <- c(input$hosp, "Percent (Alive at 30 Days)",
                           "Percent (Dead at 30 Days)")
         xtable(table, type = html)
@@ -400,8 +408,6 @@ server <- function(input, output) {
   })
   
   
-  
-  
   # Lab Measurements Tables --------------
   output$labTab <- renderTable({
     lab <- switch(input$labvar,
@@ -424,11 +430,9 @@ server <- function(input, output) {
   })
   
   # ----------- CHARTEVENTS: VITAL MEASUREMENTS INFO ----------
-  
   output$vitHead <- renderText({input$vital})
-  
-  # Chart events: Vital measurements Table -----------------
-  
+
+  # Chart events: Vital measurements Tables -----------------
   output$vitTab <- renderTable({
     vit <- switch(input$vital,
                   "Heart Rate" = icu_cohort$heart_rate,
@@ -448,9 +452,9 @@ server <- function(input, output) {
     } else if (input$compc == "Compare") {
       table2(vit[alive], vit[dead])
     }
-    
   })
   
+  # Vital measurements plots --------------
   output$vitPlot <- renderPlot({
     vit <- switch(input$vital,
                   "Heart Rate" = icu_cohort$heart_rate,
@@ -477,14 +481,9 @@ server <- function(input, output) {
       } else if (input$compc == "Compare") {
         box2(vit[alive], vit[dead], input$vital)
       }
-      
     }
-    
   })
-  
-  
 }
-
 
 # Run app ----
 shinyApp(ui, server)

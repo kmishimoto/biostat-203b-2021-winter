@@ -14,7 +14,8 @@ table1 <- function(input) {
   q1 <- quantile(input, probs = .25, na.rm = T)
   q3 <- quantile(input, probs = .75, na.rm = T)
   
-  table2 <- matrix(c(as.integer(count), min, q1, q3, max, med, mean, sd, miss), nrow = 1)
+  table2 <- matrix(c(as.integer(count), min, q1, q3, max, med, mean, sd, miss), 
+                   nrow = 1)
   colnames(table2) <- c("Count", "Min", "1st Quantile", "3rd Quantile", "Max",
                         "Median", "Mean", "StdDev",
                         "Number Missing")
@@ -33,10 +34,15 @@ table2 <- function(input1, input2) {
   min <- round(c(min(input1, na.rm = T), min(input2, na.rm = T)), 2)
   max <- round(c(max(input1, na.rm = T), max(input2, na.rm = T)), 2)
   med <- round(c(median(input1, na.rm = T), median(input2, na.rm = T)), 2)
-  q1 <- round(c(quantile(input1, probs = .25, na.rm = T), quantile(input2, probs = .25, na.rm = T)), 2)
-  q3 <- round(c(quantile(input1, probs = .75, na.rm = T), quantile(input2, probs = .75, na.rm = T)), 2)
+  q1 <- round(c(quantile(input1, probs = .25, na.rm = T), 
+                quantile(input2, probs = .25, na.rm = T)), 
+              2)
+  q3 <- round(c(quantile(input1, probs = .75, na.rm = T), 
+                quantile(input2, probs = .75, na.rm = T)), 
+              2)
   
-  table1 <- matrix(c("Alive", "Dead", as.integer(count), min, q1, q3, max, med, mean, sd, miss), 
+  table1 <- matrix(c("Alive", "Dead", as.integer(count), 
+                     min, q1, q3, max, med, mean, sd, miss), 
                    nrow = 2, byrow = FALSE)
   colnames(table1) <- c("Status at 30 days","Count", "Min", "1st Quantile",
                         "3rd Quantile", "Max", "Median", "Mean", "StdDev",
@@ -93,6 +99,7 @@ hist1 <- function(input, varname, binnum) {
 }
 
 hist2 <- function(input1, input2, varname, binnum) {
+  # two histograms on top of each other
   plot0 <- ggplot() +
     geom_histogram(mapping = aes(x = input1), 
                    bins = binnum, color = "black", fill = "green") +
@@ -118,7 +125,7 @@ barfreq1 <- function(input, varname) {
     ylab("Count")
 }
 
-barfreq2 <- function(input1, input2, varname){
+barfreq2 <- function(input1, input2, varname) {
   # two side-by-side frequency barplots of two vector inputs
   # first input should be for patients alive at 30 day mark
   plot0 <- ggplot() +
@@ -138,7 +145,7 @@ barfreq2 <- function(input1, input2, varname){
   grid.arrange(plot0, plot1, ncol = 2)
 }
 
-barper1 <- function(input, varname){
+barper1 <- function(input, varname) {
   # a bar plot showing percentages for a categorical vector input
   # first input should be for patients alive at 30 day mark
   tab <- round(prop.table(table(input, useNA = "ifany")), 2)*100
@@ -152,6 +159,8 @@ barper1 <- function(input, varname){
 }
 
 barper2 <- function(input1, input2, varname) {
+  # two bar plots side-by-side showing percentages
+  # first input should be for patients alive at 30 day mark
   tab0 <- round(prop.table(table(input1, useNA = "ifany")), 2)*100
   tab0 <- as.data.frame(tab0, responseName = "Percentages")
   plot0 <- ggplot() +
@@ -177,6 +186,7 @@ barper2 <- function(input1, input2, varname) {
 
 
 box1 <- function(input, varname) {
+  # a boxplot for a vector input
   ggplot() +
     geom_boxplot(mapping = aes(y = input), fill = "light blue") +
     xlab(varname) +
@@ -184,7 +194,7 @@ box1 <- function(input, varname) {
 }
 
 box2 <- function(input1, input2, varname) {
-  # two boxplots of two different vectors
+  # two side-by-side vertical boxplots of two different vectors
   # first input should be for patients who were alive at 30 days after admission
   plot0 <- ggplot() +
     geom_boxplot(mapping = aes(y = input1), fill = "green") +
