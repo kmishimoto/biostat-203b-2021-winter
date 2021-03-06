@@ -11,9 +11,12 @@ table1 <- function(input) {
   min <- min(input, na.rm = T)
   max <- max(input, na.rm = T)
   med <- median(input, na.rm = T)
+  q1 <- quantile(input, probs = .25, na.rm = T)
+  q3 <- quantile(input, probs = .75, na.rm = T)
   
-  table2 <- matrix(c(as.integer(count), min, max, med, mean, sd, miss), nrow = 1)
-  colnames(table2) <- c("Count", "Min", "Max", "Median", "Mean", "StdDev",
+  table2 <- matrix(c(as.integer(count), min, q1, q3, max, med, mean, sd, miss), nrow = 1)
+  colnames(table2) <- c("Count", "Min", "1st Quantile", "3rd Quantile", "Max",
+                        "Median", "Mean", "StdDev",
                         "Number Missing")
   
   xtable(table2, type = html)
@@ -30,10 +33,13 @@ table2 <- function(input1, input2) {
   min <- round(c(min(input1, na.rm = T), min(input2, na.rm = T)), 2)
   max <- round(c(max(input1, na.rm = T), max(input2, na.rm = T)), 2)
   med <- round(c(median(input1, na.rm = T), median(input2, na.rm = T)), 2)
+  q1 <- round(c(quantile(input1, probs = .25, na.rm = T), quantile(input2, probs = .25, na.rm = T)), 2)
+  q3 <- round(c(quantile(input1, probs = .75, na.rm = T), quantile(input2, probs = .75, na.rm = T)), 2)
   
-  table1 <- matrix(c("Alive", "Dead", as.integer(count), min, max, med, mean, sd, miss), 
+  table1 <- matrix(c("Alive", "Dead", as.integer(count), min, q1, q3, max, med, mean, sd, miss), 
                    nrow = 2, byrow = FALSE)
-  colnames(table1) <- c("Status at 30 days","Count", "Min", "Max", "Median", "Mean", "StdDev",
+  colnames(table1) <- c("Status at 30 days","Count", "Min", "1st Quantile",
+                        "3rd Quantile", "Max", "Median", "Mean", "StdDev",
                         "Number Missing")
   xtable(table1, type = html)
 }
@@ -80,7 +86,8 @@ hist1 <- function(input, varname, binnum) {
   # varname = string that is the variable name
   # binnum = number of bins
   ggplot() +
-    geom_histogram(mapping = aes(x = input), bins = binnum) +
+    geom_histogram(mapping = aes(x = input), bins = binnum,
+                   color = "black", fill = "light blue") +
     xlab(varname) +
     ylab("Count")
 }
@@ -88,14 +95,14 @@ hist1 <- function(input, varname, binnum) {
 hist2 <- function(input1, input2, varname, binnum) {
   plot0 <- ggplot() +
     geom_histogram(mapping = aes(x = input1), 
-                   bins = binnum) +
+                   bins = binnum, color = "black", fill = "green") +
     xlab(varname) +
     ylab("Count") + 
     labs(title = "Patients who did not die within 30 days of admission")
   
   plot1 <- ggplot() +
     geom_histogram(mapping = aes(x = input2), 
-                   bins = binnum) +
+                   bins = binnum, color = "black", fill = "red") +
     xlab(varname) +
     ylab("Count") + 
     labs(title = "Patients who died within 30 days of admission")
@@ -105,7 +112,7 @@ hist2 <- function(input1, input2, varname, binnum) {
 barfreq1 <- function(input, varname) {
   # barplot for a vector input
   ggplot() +
-    geom_bar(mapping = aes(x = input)) +
+    geom_bar(mapping = aes(x = input), color = "black", fill = "light blue") +
     theme(axis.text.x = element_text(angle = 70, vjust = 1, hjust=1)) +
     xlab(varname) +
     ylab("Count")
@@ -115,14 +122,14 @@ barfreq2 <- function(input1, input2, varname){
   # two side-by-side frequency barplots of two vector inputs
   # first input should be for patients alive at 30 day mark
   plot0 <- ggplot() +
-    geom_bar(mapping = aes(x = input1)) +
+    geom_bar(mapping = aes(x = input1), color = "black", fill = "green") +
     theme(axis.text.x = element_text(angle = 70, vjust = 1, hjust=1)) +
     xlab(varname) +
     ylab("Count") + 
     labs(title = "Patients who did not die within 30 days of admission")
   
   plot1 <- ggplot() +
-    geom_bar(mapping = aes(x = input2)) +
+    geom_bar(mapping = aes(x = input2), color = "black", fill = "red") +
     theme(axis.text.x = element_text(angle = 70, vjust = 1, hjust=1)) +
     xlab(varname) +
     ylab("Count") +
@@ -137,7 +144,8 @@ barper1 <- function(input, varname){
   tab <- round(prop.table(table(input, useNA = "ifany")), 2)*100
   tab <- as.data.frame(tab, responseName = "Percentages")
   ggplot() +
-    geom_col(mapping = aes(x = tab[, 1], y = tab$Percentages))+
+    geom_col(mapping = aes(x = tab[, 1], y = tab$Percentages),
+             color = "black", fill = "light blue")+
     theme(axis.text.x = element_text(angle = 70, vjust = 1, hjust=1)) +
     xlab(varname) +
     ylab("Percentages")
@@ -147,7 +155,8 @@ barper2 <- function(input1, input2, varname) {
   tab0 <- round(prop.table(table(input1, useNA = "ifany")), 2)*100
   tab0 <- as.data.frame(tab0, responseName = "Percentages")
   plot0 <- ggplot() +
-    geom_col(mapping = aes(x = tab0[, 1], y = tab0$Percentages))+
+    geom_col(mapping = aes(x = tab0[, 1], y = tab0$Percentages),
+             color = "black", fill = "green")+
     theme(axis.text.x = element_text(angle = 70, vjust = 1, hjust=1)) +
     xlab(varname) +
     ylab("Percentages") +
@@ -156,7 +165,8 @@ barper2 <- function(input1, input2, varname) {
   tab1 <- round(prop.table(table(input2, useNA = "ifany")), 2)*100
   tab1 <- as.data.frame(tab1, responseName = "Percentages")
   plot1 <- ggplot() +
-    geom_col(mapping = aes(x = tab1[, 1], y = tab1$Percentages))+
+    geom_col(mapping = aes(x = tab1[, 1], y = tab1$Percentages),
+             color = "black", fill = "red")+
     theme(axis.text.x = element_text(angle = 70, vjust = 1, hjust=1)) +
     xlab(varname) +
     ylab("Percentages") +
@@ -168,7 +178,7 @@ barper2 <- function(input1, input2, varname) {
 
 box1 <- function(input, varname) {
   ggplot() +
-    geom_boxplot(mapping = aes(y = input)) +
+    geom_boxplot(mapping = aes(y = input), fill = "light blue") +
     xlab(varname) +
     ylab("Measurement")
 }
@@ -177,12 +187,12 @@ box2 <- function(input1, input2, varname) {
   # two boxplots of two different vectors
   # first input should be for patients who were alive at 30 days after admission
   plot0 <- ggplot() +
-    geom_boxplot(mapping = aes(y = input1)) +
+    geom_boxplot(mapping = aes(y = input1), fill = "green") +
     xlab(varname) +
     ylab("Measurement") + 
     labs(title = "Patients who did not die within 30 days of admission")
   plot1 <- ggplot() +
-    geom_boxplot(mapping = aes(y = input2)) +
+    geom_boxplot(mapping = aes(y = input2), fill = "red") +
     xlab(varname) +
     ylab("Measurement") + 
     labs(title = "Patients who died within 30 days of admission")

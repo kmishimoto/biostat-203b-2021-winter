@@ -18,7 +18,7 @@ alive <- deadind == 0 | is.na(deadind)
 
 # User interface ----
 ui <- fluidPage(
-  titlePanel("MIMIC-IV Data"),
+  titlePanel("MIMIC-IV Data Exploration"),
   tabsetPanel(
     tabPanel("Demographics",
              sidebarLayout(
@@ -33,12 +33,12 @@ ui <- fluidPage(
                              selected = "Ethnicity"),
                  
                  radioButtons("prop", 
-                              label = "Choose to display frequencies of percentages",
+                              label = "Choose to display frequencies or percentages (for categorical data)",
                               choices = c("Frequencies", "Percentages"), 
                               selected = "Frequencies"),
                  
                  radioButtons("comp", 
-                              label = "Compare across patients who did and didn't die within 30 days of admission?",
+                              label = "Look at all data or compare across whether patient survived to 30 days after admission?",
                               choices = c("All Data", "Compare"), 
                               selected = "All Data"),
                  
@@ -51,7 +51,8 @@ ui <- fluidPage(
                ),
                
                
-               mainPanel(textOutput("demoStat"),
+               mainPanel(h1(textOutput("demoHead")),
+                         textOutput("demoStat"),
                          tableOutput("demoTab"),
                          plotOutput("barPlot"))
              )
@@ -60,7 +61,7 @@ ui <- fluidPage(
     tabPanel("Hospital Info",
              sidebarLayout(
                sidebarPanel(
-                 helpText("Hospital admission and stay information"),
+                 helpText("Hospital admission and stay information for ICU patients"),
                  
                  selectInput("hosp",
                              label = "Choose a variable to display:",
@@ -72,12 +73,12 @@ ui <- fluidPage(
                              selected = "First Care Unit"),
                  
                  radioButtons("prop2", 
-                              label = "Choose to display frequencies of percentages",
+                              label = "Choose to display frequencies or percentages (for categorical data)",
                               choices = c("Frequencies", "Percentages"), 
                               selected = "Frequencies"),
                  
                  radioButtons("comph", 
-                              label = "Compare across patients who did and didn't die within 30 days of admission?",
+                              label = "Look at all data or compare across whether patient survived to 30 days after admission?",
                               choices = c("All Data", "Compare"), 
                               selected = "All Data"),
                  
@@ -90,7 +91,8 @@ ui <- fluidPage(
                ),
                
                
-               mainPanel(textOutput("hospMiss"),
+               mainPanel(h1(textOutput("hospHead")),
+                         textOutput("hospMiss"),
                          tableOutput("hospTab"),
                          plotOutput("hospPlot"))
              )
@@ -98,67 +100,77 @@ ui <- fluidPage(
     
     tabPanel("Lab Measurements",
              sidebarLayout(
-               helpText("Lab Measurement Data for ICU Patients"),
+               sidebarPanel(
+                 helpText("Lab Measurement Data for ICU Patients"),
+                 
+                 selectInput("labvar",
+                             label = "Choose lab measurement to display",
+                             choices = c("Bicarbonate", "Calcium", "Chloride",
+                                         "Creatinine", "Glucose", "Magnesium",
+                                         "Potassium", "Sodium", "Hematocrit",
+                                         "WBC", "Lactate"),
+                             selected = "Bicarbonate"),
+                 sliderInput("bins", 
+                             label = "Choose number of bins for histogram", 
+                             min = 1,
+                             max = 50, 
+                             value = 30),
+                 
+                 radioButtons("plot", 
+                              label = "Choose type of plot to display",
+                              choices = c("Boxplot", "Histogram"), 
+                              selected = "Boxplot"),
+                 
+                 radioButtons("compl", 
+                              label = "Look at all data or compare across whether patient survived to 30 days after admission?",
+                              choices = c("All Data", "Compare"), 
+                              selected = "All Data")
+                 
+               ),
                
-               selectInput("labvar",
-                           label = "Choose lab measurement to display",
-                           choices = c("Bicarbonate", "Calcium", "Chloride",
-                                       "Creatinine", "Glucose", "Magnesium",
-                                       "Potassium", "Sodium", "Hematocrit",
-                                       "WBC", "Lactate"),
-                           selected = "Bicarbonate")),
-             sliderInput("bins", 
-                         label = "Choose number of bins for histogram", 
-                         min = 1,
-                         max = 50, 
-                         value = 30),
-             
-             radioButtons("plot", 
-                          label = "Choose plot to display",
-                          choices = c("Boxplot", "Histogram"), 
-                          selected = "Boxplot"),
-             
-             radioButtons("compl", 
-                          label = "Compare across patients who did and didn't die within 30 days of admission?",
-                          choices = c("All Data", "Compare"), 
-                          selected = "All Data"),
-             
-             mainPanel(tableOutput("labTab"),
-                       verbatimTextOutput("labStats"),
-                       plotOutput("labPlot"))
+               mainPanel(h1(textOutput("labHead")),
+                         tableOutput("labTab"),
+                         verbatimTextOutput("labStats"),
+                         plotOutput("labPlot"))
+             )
     ),
-    tabPanel("Vitals",
+    
+    tabPanel("Vital Measurements",
              sidebarLayout(
-               helpText("Vital Measurement Data for ICU Patients"),
+               sidebarPanel(
+                 helpText("Vital Measurement Data for ICU Patients"),
+                 
+                 selectInput("vital",
+                             label = "Choose vital measurement to display",
+                             choices = c("Heart Rate",
+                                         "Non-Invasive Blood Pressure - Systolic",
+                                         "Non-Invasive Blood Pressure - Mean",
+                                         "Respiratory Rate",
+                                         "Temperature (F)",
+                                         "Arterial Blood Pressure - Systolic",
+                                         "Arterial Blood Pressure - Mean"),
+                             selected = "Heart Rate"),
+                 sliderInput("bins2", 
+                             label = "Choose number of bins for histogram", 
+                             min = 1,
+                             max = 50, 
+                             value = 30),
+                 
+                 radioButtons("plot2", 
+                              label = "Choose type of plot to display",
+                              choices = c("Boxplot", "Histogram"), 
+                              selected = "Boxplot"),
+                 
+                 radioButtons("compc", 
+                              label = "Look at all data or compare across whether patient survived to 30 days after admission?",
+                              choices = c("All Data", "Compare"), 
+                              selected = "All Data")
+               ),
                
-               selectInput("vital",
-                           label = "Choose vital measurement to display",
-                           choices = c("Heart Rate",
-                                       "Non-Invasive Blood Pressure - Systolic",
-                                       "Non-Invasive Blood Pressure - Mean",
-                                       "Respiratory Rate",
-                                       "Temperature (F)",
-                                       "Arterial Blood Pressure - Systolic",
-                                       "Arterial Blood Pressure - Mean"),
-                           selected = "Heart Rate")),
-             sliderInput("bins2", 
-                         label = "Choose number of bins for histogram", 
-                         min = 1,
-                         max = 50, 
-                         value = 30),
-             
-             radioButtons("plot2", 
-                          label = "Choose plot to display",
-                          choices = c("Boxplot", "Histogram"), 
-                          selected = "Boxplot"),
-             
-             radioButtons("compc", 
-                          label = "Compare across patients who did and didn't die within 30 days of admission?",
-                          choices = c("All Data", "Compare"), 
-                          selected = "All Data"),
-             
-             mainPanel(tableOutput("vitTab"),
-                       plotOutput("vitPlot"))
+               mainPanel(h1(textOutput("vitHead")),
+                         tableOutput("vitTab"),
+                         plotOutput("vitPlot"))
+             )
     )
     
   )
@@ -170,6 +182,9 @@ ui <- fluidPage(
 
 
 server <- function(input, output) {
+  
+  # ---------------- DEMOGRAPHIC INFO -----------
+  output$demoHead <- renderText({input$demovar})
   
   # Demographic Plots -----------------
   output$barPlot <- renderPlot({
@@ -268,6 +283,10 @@ server <- function(input, output) {
     }
   })
   
+  # -----------HOSPITAL ADMISSION / STAY INFO --------------
+  
+  output$hospHead <- renderText({input$hosp})
+  
   # Hospital Plots------------
   
   output$hospPlot <- renderPlot({
@@ -346,6 +365,10 @@ server <- function(input, output) {
   })
   
   
+  # ---------------- LAB MEASUREMENT INFO ------------
+  
+  output$labHead <- renderText({input$labvar})
+  
   # Lab Measurement Plots -----------------
   
   output$labPlot <- renderPlot({
@@ -399,6 +422,10 @@ server <- function(input, output) {
       table2(lab[alive], lab[dead])
     }
   })
+  
+  # ----------- CHARTEVENTS: VITAL MEASUREMENTS INFO ----------
+  
+  output$vitHead <- renderText({input$vital})
   
   # Chart events: Vital measurements Table -----------------
   
