@@ -1,0 +1,445 @@
+---
+title: "Biostat 203B Homework 4 Solutions"
+subtitle: Due March 19 @ 11:59PM
+author: Kelsey Ishimoto
+output:
+  # ioslides_presentation: default
+  html_document:
+    toc: true
+    toc_depth: 4
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
+```
+                      
+Display machine information:
+```{r}
+sessionInfo()
+```
+Load database libraries and the tidyverse frontend:
+```{r, warning = F, message = F}
+library(tidyverse)
+library(lubridate)
+library(miceRanger)
+```
+
+## Q1. Missing data
+
+Through the Shiny app developed in HW3, we observe abundant missing values in the MIMIC-IV ICU cohort we created. In this question, we use multiple imputation to obtain a data set without missing values.
+
+0. Read following tutorials on the R package miceRanger for imputation: <https://github.com/farrellday/miceRanger>, <https://cran.r-project.org/web/packages/miceRanger/vignettes/miceAlgorithm.html>.
+
+    A more thorough book treatment of the practical imputation strategies is the book [*_Flexible Imputation of Missing Data_*](https://stefvanbuuren.name/fimd/) by Stef van Buuren. 
+
+
+3. Perform a data quality check of the ICU stays data. Discard variables with substantial missingness, say >5000 `NA`s. Replace apparent data entry errors by `NA`s.
+
+4. Impute missing values by `miceRanger` (request $m=3$ datasets). This step is very computational intensive. Make sure to save the imputation results as a file.
+
+5. Make imputation diagnostic plots and explain what they mean.
+
+6. Obtain a complete data set by averaging the 3 imputed data sets.
+
+### Q1 Solution:
+
+#### Part 1: Explain the jargon MCAR, MAR, and MNAR.
+ _Question was answered by making reference to the IDRE Multiple Imputation in R course_ 
+
+**MCAR - Missing Completely at Random**
+
+When a variable has values that are missing completely at random, values of other variables does not predict whether a value will be missing, nor does the unobserved value of the variable itself predict whether a value will be missing. In this case, analyzing only the complete cases will not result in biased parameter estimates. 
+
+**MAR - Missing at Random**
+
+When a variable is missing at random, values of other variables _can_ be used to predict whether our variable of interest is missing. Still, however, the unobserved value of the variable itself _cannot_ be used to predict missingness.
+
+**MNAR - Missing Not at Random**
+
+When a variable is missing not at random, the unobserved value of the variable _can_ be used to predict whether a value will be missing or not. 
+
+#### Part 2: Explain how Multiple Imputation by Chained Equations (MICE) works.
+
+To determine what value to impute for missing values, the other variables in the data can be used in predictive models. Furthermore, these values can have some random error added to them in order to preserve some of the variability from the original data. What MICE does is run this process _m_ number of times until all specified variables have been imputed and the average imputed values have converged.
+
+
+#### Part 3: Perform a data quality check of the ICU stays data. 
+_Discard variables with substantial missingness, say >5000 `NA`s. Replace apparent data entry errors by `NA`s._
+
+First, read in the data:
+```{r}
+icu_cohort <- readRDS("icu_cohort.rds")
+```
+
+Next, we need to see if there are data entry errors, and make sure that missing data is coded as `NA`. Before I go into the analysis. I want to say that I have little to no knowledge of ranges for normal vital measurements. Therefore, unless otherwise stated, I have used the rule: 1.5 times the interquartile range to determine the steps from the first and third quartile to determine the range of "normal" values. Anything outside of this range are values that I will treat as data entry errors and re-coded as `NA`. This is a range that could be adjusted in the future if needed.
+
+**MAYBE DON'T INCLUDE THIS NEXT PART**: (because Dr. Zhou wants us to include ethnicity in our analysis in Q2)
+For ethnicity, some entries are coded as `UNABLE TO OBTAIN` and `UNKNOWN`. I will change these values to `NA`:
+```{r, eval = F}
+dim(icu_cohort)
+
+for (i in 1:50048) {
+  if (icu_cohort$ethnicity[i] == "UNKNOWN" |
+      icu_cohort$ethnicity[i] == "UNABLE TO OBTAIN") {
+    icu_cohort$ethnicity[i] <- NA
+      }
+}
+```
+
+Now, we look at heart rate. Normally, the heart rate shouldn't be below 60 beats per minute (bpm) nor above 200 bpm. When sleeping, the heart rate can fall to as low as 40 bpm. Using the 1.5 times IQR to find the range of values to keep:
+
+```{r}
+Q <- quantile(icu_cohort$heart_rate, 
+         probs = c(0.05, 0.25, 0.75, 0.95), na.rm = TRUE)
+names(Q) <- NULL
+lower <- Q[2] - (Q[3] - Q[2]) * 1.5
+upper <- Q[3] + (Q[3] - Q[2]) * 1.5
+
+print(c(lower, upper))
+```
+The range of values I will retain is 36.5 to 136.5.
+
+
+```{r}
+for (i in 1:50048) {
+  if (!is.na(icu_cohort$heart_rate[i]) & 
+      icu_cohort$heart_rate[i] < lower) {
+    icu_cohort$heart_rate[i] <- NA
+  } else if (!is.na(icu_cohort$heart_rate[i]) & 
+             icu_cohort$heart_rate[i] > upper) {
+    icu_cohort$heart_rate[i] <- NA
+  }
+}
+
+icu_cohort %>% 
+  select(heart_rate) %>% 
+  filter(!is.na(.)) %>% 
+  summarize(min = min(.), max = max(.))
+```
+
+Next, we look at non-invasive blood pressure systolic. For an adult, the normal systolic blood pressure should be below 120 mm Hg but above 90 mm Hg. A hypertensive crisis is when systolic blood pressure is above 180 mm Hg.
+
+Determining cutoff points for outliers for non-invasive systolic blood pressure using 1.5 times the interquartile range (IQR) as the criteria for outliers / data entry errors:
+```{r}
+Q <- quantile(icu_cohort$non_invasive_blood_pressure_systolic, 
+         probs = c(0.05, 0.25, 0.75, 0.95), na.rm = TRUE)
+names(Q) <- NULL
+lower <- Q[2] - (Q[3] - Q[2]) * 1.5
+upper <- Q[3] + (Q[3] - Q[2]) * 1.5
+
+print(c(lower, upper))
+```
+The range of values I will retain in the data set are: 56.5 to 188.5
+
+Treating anything outside the previous range as data entry errors, I will code them as `NA`.
+```{r}
+for (i in 1:50048) {
+  if (!is.na(icu_cohort$non_invasive_blood_pressure_systolic[i]) & 
+      icu_cohort$non_invasive_blood_pressure_systolic[i] < lower) {
+    icu_cohort$non_invasive_blood_pressure_systolic[i] <- NA
+  } else if (!is.na(icu_cohort$non_invasive_blood_pressure_systolic[i]) & 
+             icu_cohort$non_invasive_blood_pressure_systolic[i] > upper) {
+    icu_cohort$non_invasive_blood_pressure_systolic[i] <- NA
+  }
+}
+
+
+icu_cohort %>% 
+  select(non_invasive_blood_pressure_systolic) %>% 
+  filter(!is.na(non_invasive_blood_pressure_systolic)) %>% 
+  summarize(min = min(.), max = max(.))
+```
+
+Next, we look at non-invasive blood pressure mean. The normal range should be around 75 mm Hg to 100 mm Hg.
+
+```{r}
+Q <- quantile(icu_cohort$non_invasive_blood_pressure_mean, 
+         probs = c(0.05, 0.25, 0.75, 0.95), na.rm = TRUE)
+names(Q) <- NULL
+lower <- Q[2] - (Q[3] - Q[2]) * 1.5
+upper <- Q[3] + (Q[3] - Q[2]) * 1.5
+
+print(c(lower, upper))
+```
+
+The range of values I will retain are 33 mm Hg to 129 mm Hg.
+
+```{r}
+for (i in 1:50048) {
+  if (!is.na(icu_cohort$non_invasive_blood_pressure_mean[i]) & 
+      icu_cohort$non_invasive_blood_pressure_mean[i] < lower) {
+    icu_cohort$non_invasive_blood_pressure_mean[i] <- NA
+  } else if (!is.na(icu_cohort$non_invasive_blood_pressure_mean[i]) & 
+             icu_cohort$non_invasive_blood_pressure_mean[i] > upper) {
+    icu_cohort$non_invasive_blood_pressure_mean[i] <- NA
+  }
+}
+
+icu_cohort %>% 
+  select(non_invasive_blood_pressure_mean) %>% 
+  filter(!is.na(non_invasive_blood_pressure_mean)) %>% 
+  summarize(min = min(.), max = max(.))
+
+```
+
+Next, I will look at respiratory rate. For a normal adult, the range should be around 12 to 20 breaths per minute. 
+
+```{r}
+Q <- quantile(icu_cohort$respiratory_rate, 
+         probs = c(0.05, 0.25, 0.75, 0.95), na.rm = TRUE)
+names(Q) <- NULL
+lower <- Q[2] - (Q[3] - Q[2]) * 1.5
+upper <- Q[3] + (Q[3] - Q[2]) * 1.5
+
+print(c(lower, upper))
+```
+
+The range of values I will retain are between 4.5 and 32.5 breaths per minute.
+
+```{r}
+for (i in 1:50048) {
+  if (!is.na(icu_cohort$respiratory_rate[i]) & 
+      icu_cohort$respiratory_rate[i] < lower) {
+    icu_cohort$respiratory_rate[i] <- NA
+  } else if (!is.na(icu_cohort$respiratory_rate[i]) & 
+             icu_cohort$respiratory_rate[i] > upper) {
+    icu_cohort$respiratory_rate[i] <- NA
+  }
+}
+
+icu_cohort %>% 
+  select(respiratory_rate) %>% 
+  filter(!is.na(respiratory_rate)) %>% 
+  summarize(min = min(.), max = max(.))
+```
+
+Next is temperature in Fahrenheit. The normal range is 97.7 - 99.5 degrees Fahrenheit. 95 degrees or lower is classified as hypothermia, and 106 and higher is classified as hyperrexia. 
+
+
+```{r}
+Q <- quantile(icu_cohort$temperature_fahrenheit, 
+         probs = c(0.05, 0.25, 0.75, 0.95), na.rm = TRUE)
+names(Q) <- NULL
+lower <- Q[2] - (Q[3] - Q[2]) * 1.5
+upper <- Q[3] + (Q[3] - Q[2]) * 1.5
+
+print(c(lower, upper))
+```
+
+In view of the known ranges of temperatures, I will not use the 1.5 times IQR rule to find possible data entry errors since the range that gives does not seem to be wide enough to allow for all possible values. I will instead retain values within the range of 90 to 110 degrees Fahrenheit (a wider, more conservative range than the known values since I don't actually know much about "normal" vital signs).
+
+```{r}
+for (i in 1:50048) {
+  if (!is.na(icu_cohort$temperature_fahrenheit[i]) & 
+      icu_cohort$temperature_fahrenheit[i] < 90) {
+    icu_cohort$temperature_fahrenheit[i] <- NA
+  } else if (!is.na(icu_cohort$temperature_fahrenheit[i]) & 
+             icu_cohort$temperature_fahrenheit[i] > 110) {
+    icu_cohort$temperature_fahrenheit[i] <- NA
+  }
+}
+
+icu_cohort %>% 
+  select(temperature_fahrenheit) %>% 
+  filter(!is.na(temperature_fahrenheit)) %>% 
+  summarize(min = min(.), max = max(.))
+```
+
+Next is arterial blood pressure systolic. The normal range for this value is 90 to 140. 
+
+
+```{r}
+Q <- quantile(icu_cohort$arterial_blood_pressure_systolic, 
+         probs = c(0.05, 0.25, 0.75, 0.95), na.rm = TRUE)
+names(Q) <- NULL
+lower <- Q[2] - (Q[3] - Q[2]) * 1.5
+upper <- Q[3] + (Q[3] - Q[2]) * 1.5
+
+print(c(lower, upper))
+```
+
+I will retain values between 53 and 189 mm Hg.
+
+```{r}
+for (i in 1:50048) {
+  if (!is.na(icu_cohort$arterial_blood_pressure_systolic[i]) & 
+      icu_cohort$arterial_blood_pressure_systolic[i] < lower) {
+    icu_cohort$arterial_blood_pressure_systolic[i] <- NA
+  } else if (!is.na(icu_cohort$arterial_blood_pressure_systolic[i]) & 
+             icu_cohort$arterial_blood_pressure_systolic[i] > upper) {
+    icu_cohort$arterial_blood_pressure_systolic[i] <- NA
+  }
+}
+
+icu_cohort %>% 
+  select(arterial_blood_pressure_systolic) %>% 
+  filter(!is.na(arterial_blood_pressure_systolic)) %>% 
+  summarize(min = min(.), max = max(.))
+```
+
+And finally there is mean arterial blood pressure. The normal range for this value is 70 to 110. 
+
+
+```{r}
+Q <- quantile(icu_cohort$arterial_blood_pressure_mean, 
+         probs = c(0.05, 0.25, 0.75, 0.95), na.rm = TRUE)
+names(Q) <- NULL
+lower <- Q[2] - (Q[3] - Q[2]) * 1.5
+upper <- Q[3] + (Q[3] - Q[2]) * 1.5
+
+print(c(lower, upper))
+```
+
+I will retain values between 34.5 mm Hg and 126.5 mm Hg.
+
+```{r}
+for (i in 1:50048) {
+  if (!is.na(icu_cohort$arterial_blood_pressure_mean[i]) & 
+      icu_cohort$arterial_blood_pressure_mean[i] < lower) {
+    icu_cohort$arterial_blood_pressure_mean[i] <- NA
+  } else if (!is.na(icu_cohort$arterial_blood_pressure_mean[i]) & 
+             icu_cohort$arterial_blood_pressure_mean[i] > upper) {
+    icu_cohort$arterial_blood_pressure_mean[i] <- NA
+  }
+}
+
+icu_cohort %>% 
+  select(arterial_blood_pressure_mean) %>% 
+  filter(!is.na(arterial_blood_pressure_mean)) %>% 
+  summarize(min = min(.), max = max(.))
+```
+
+
+Taking a look at the 30 day death indicator:
+```{r}
+unique(icu_cohort$death30days)
+```
+There are missing values for the 30 day death indicator. Looking at how I defined this data set previously, this variable is coded as `NA` when time of death is missing. Reading the documentation of the MIMIC-IV data, it says, “Note that `deathtime` is only present if the patient died in-hospital, and is almost always the same as the patient’s `dischtime`. However, there can be some discrepancies due to typographical errors.” To eliminate the missing values for this variable, I will redefine the `death30days` indicator variable, using discharge time instead of the missing death time for calculating how long the patient survived in the hospital for. 
+
+```{r}
+icu_cohort <- icu_cohort %>% 
+  mutate(death30days = hospital_expire_flag)
+
+for (i in 1:50048) {
+  if (icu_cohort$hospital_expire_flag[i] == 1 & 
+      !is.na(icu_cohort$deathtime[i])) {
+    icu_cohort$death30days[i] <- 
+      (icu_cohort$deathtime[i] - icu_cohort$admittime[i]) < ddays(30)
+  } else if (icu_cohort$hospital_expire_flag[i] == 1 & 
+             is.na(icu_cohort$deathtime[i])) {
+    icu_cohort$death30days[i] <- 
+      (icu_cohort$dischtime[i] - icu_cohort$admittime[i]) < ddays(30)
+  }
+}
+
+unique(icu_cohort$death30days)
+```
+
+
+Finding the number of missing values in each column:
+```{r}
+col <- colnames(icu_cohort)
+
+num_missing <- rep(0, 46)
+
+# matrix to indicate whether value is missing or not
+miss_mat <- icu_cohort %>% 
+  is.na()
+
+# summing up the number of missing values for each variable:
+for (i in 1:46) {
+  num_missing[i] <- sum(miss_mat[, i])
+}
+
+for (i in which(num_missing > 5000)) {
+  print(col[i])
+  print(num_missing[i])
+}
+```
+
+Now to discard variables with substantial missingness (> 5,000 `NA`s). Note that I have also dropped variables that I will not be using in the final analysis in Question 2:
+```{r}
+icu_dropped <- icu_cohort %>% 
+  select(-edregtime, -edouttime, -lactate, 
+         -arterial_blood_pressure_systolic, -arterial_blood_pressure_mean,
+         -hadm_id, -stay_id, -first_careunit, -last_careunit,
+         -intime, -outtime, -los, -admittime, -dischtime, -deathtime, 
+         -admission_type, -admission_location, -discharge_location,
+         -insurance, -language, -anchor_age, -anchor_year, -anchor_year_group,
+         -dod)
+
+colnames(icu_dropped)
+```
+
+
+
+#### Part 4: Impute missing values by `miceRanger` (request $m=3$ datasets). 
+
+```{r}
+require(miceRanger)
+set.seed(68519)
+
+# Perform mice, return 3 datasets. 
+seqTime <- system.time(
+  miceObj <- miceRanger(icu_dropped, m = 3, returnModels = TRUE,
+                        verbose = FALSE, max.depth = 20))
+```
+
+```{r}
+icu_comp <- completeData(miceObj)
+head(icu_comp[[1]])
+icu_comp1 <- icu_comp[[1]]
+icu_comp2 <- icu_comp[[2]]
+icu_comp3 <- icu_comp[[3]]
+```
+
+
+#### Part 5: Imputation Diagnositc Plots
+5. Make imputation diagnostic plots and explain what they mean.
+```{r}
+plotDistributions(miceObj, vars = 'allNumeric')
+plotDistributions(miceObj, vars = 'allCategorical')
+```
+These plots compare the imputed distributions (black lines) to the original distributions (red). There are multiple black lines because each black line corresponds to a single generated dataset. Here we can see if the imputation preserved the features of the data set or not.
+
+```{r}
+plotCorrelations(miceObj, vars = 'allNumeric')
+plotCorrelations(miceObj, vars = 'allCategorical')
+```
+The above plots allow us to examine if the imputed values of our datasets converged or not. The correlations above is between imputed values in every combination of datasets.
+
+```{r}
+plotVarConvergence(miceObj, vars = 'allNumeric')
+plotVarConvergence(miceObj, vars = 'allCategorical')
+```
+
+```{r}
+miceObj2 <- addIterations(miceObj, iters=2, verbose=FALSE)
+miceObj2 <- addIterations(miceObj, iters=5, verbose=FALSE)
+
+plotDistributions(miceObj2, vars = 'allNumeric')
+plotDistributions(miceObj2, vars = 'allCategorical')
+
+plotCorrelations(miceObj2, vars = 'allNumeric')
+plotCorrelations(miceObj2, vars = 'allCategorical')
+
+plotVarConvergence(miceObj2, vars = 'allNumeric')
+plotVarConvergence(miceObj2, vars = 'allCategorical')
+```
+
+
+
+
+6. Obtain a complete data set by averaging the 3 imputed data sets.
+
+
+## Q2. Predicting 30-day mortality
+
+Develop at least two analytic approaches for predicting the 30-day mortality of patients admitted to ICU using demographic information (gender, age, marital status, ethnicity), first lab measurements during ICU stay, and first vital measurements during ICU stay. For example, you can use (1) logistic regression (`glm()` function), (2) logistic regression with lasso penalty (glmnet package), (3) random forest (randomForest package), or (4) neural network.
+
+1. Partition data into 80% training set and 20% test set. Stratify partitioning according the 30-day mortality status.
+
+2. Train the models using the training set.
+
+3. Compare model prediction performance on the test set.
+
