@@ -22,6 +22,7 @@ Load database libraries and the tidyverse frontend:
 library(tidyverse)
 library(lubridate)
 library(miceRanger)
+library(randomForest)
 ```
 
 ## Q1. Missing data
@@ -465,22 +466,22 @@ mat1 <- model.matrix(~ ., data = icu_comp1)
 mat2 <- model.matrix(~ ., data = icu_comp2)
 mat3 <- model.matrix(~ ., data = icu_comp3)
 
-icu_comp <- as.data.frame((mat1 + mat2 + mat3) / 3)
+icu_final <- as.data.frame((mat1 + mat2 + mat3) / 3)
 ```
 
 Now I will check how the categorical variables were averaged, and adjust them if needed:
 ```{r}
-icu_comp %>% 
+icu_final %>% 
   select(genderM) %>% 
   unique(.)
 
-icu_comp <- icu_comp %>% 
+icu_final <- icu_final %>% 
   mutate(marital_statusMARRIED = marital_statusMARRIED > 0.5,
          marital_statusSINGLE = marital_statusSINGLE > 0.5,
          marital_statusWIDOWED = marital_statusWIDOWED > 0.5) 
 ```
 
-The complete, imputated, and averaged data set has been made and is called `icu_comp`.
+The complete, imputated, and averaged data set has been made and is called `icu_final`.
 
 
 ## Q2. Predicting 30-day mortality
@@ -492,4 +493,76 @@ Develop at least two analytic approaches for predicting the 30-day mortality of 
 2. Train the models using the training set.
 
 3. Compare model prediction performance on the test set.
+
+### Solution:
+
+#### Part 1: Partition into train and test sets, stratifying for 30-day mortality status.
+
+```{r}
+icu_final %>% 
+  select(death30days) %>% 
+  table()
+
+45152 * .8
+4896 * .8
+
+45152 * .2
+4896 * .2
+```
+
+45,152 subjects did not die within 30 days of admission, and 4,896 subjects did die within 30 days of admission. Stratifying for 30-day mortality status, we want 36,122 who survived and 3,917 who died within 30 days in the training set. This will leave 9,030 survivors and 979 subjects who died within 30 days in the test set
+
+First I want to find all the indexes for patients who did and did not die within 30 days:
+```{r}
+dead30 <- which(icu_final$death30days == 1)
+survive30 <- which(icu_final$death30days == 0)
+```
+
+Then I will randomly sample from these separate indexes the amount of subjects I want in the test set, making sure to set the option to sample _without_ replacement. Combined, these indexes will indicate which rows from the whole data set to take for the test set.
+```{r}
+set.seed(74802)
+test_dead_ind <- sample(dead30, 979, replace = F)
+set.seed(62493)
+test_surv_ind <- sample(survive30, 9030, replace = F)
+
+test_index <- c(test_dead_ind, test_surv_ind)
+```
+
+Using the indexes I just defined above, I will create the test set, and the other rows will be used for the training set. 
+```{r}
+test <- icu_final[test_index, ]
+train <- icu_final[-test_index, ]
+```
+
+Now I just want to check that these test and training sets have the correct number of rows:
+```{r}
+dim(test)
+dim(train)
+```
+
+#### Part 2: Training the models using the training set
+
+**Logistic Regression**:
+
+```{r}
+train2 <- train
+train2$death30days <- as.factor(train2$death30days)
+
+train2 <- train2 %>% 
+  select(-"(Intercept)")
+
+logis <- glm(death30days ~ ., data = train2, family = binomial)
+summary(logis)
+```
+
+Test set:
+```{r}
+logis_prob <- predict(logis, newdata = test, type = "response")
+head(logis_prob)
+
+logis_pred <- ifelse(logis_prob > 0.5, 1, 0)
+table(logis_pred, test$death30days)
+
+mean(logis_pred == test$death30days)
+```
 

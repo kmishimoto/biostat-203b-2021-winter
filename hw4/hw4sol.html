@@ -428,7 +428,12 @@ summary {
 <li><a href="#part-6-obtain-complete-data-by-averaging-3-imputed-data-sets">Part 6: Obtain complete data by averaging 3 imputed data sets</a></li>
 </ul></li>
 </ul></li>
-<li><a href="#q2.-predicting-30-day-mortality">Q2. Predicting 30-day mortality</a></li>
+<li><a href="#q2.-predicting-30-day-mortality">Q2. Predicting 30-day mortality</a><ul>
+<li><a href="#solution">Solution:</a><ul>
+<li><a href="#part-1-partition-into-train-and-test-sets-stratifying-for-30-day-mortality-status.">Part 1: Partition into train and test sets, stratifying for 30-day mortality status.</a></li>
+<li><a href="#part-2-training-the-models-using-the-training-set">Part 2: Training the models using the training set</a></li>
+</ul></li>
+</ul></li>
 </ul>
 </div>
 
@@ -458,7 +463,8 @@ summary {
 <p>Load database libraries and the tidyverse frontend:</p>
 <pre class="r"><code>library(tidyverse)
 library(lubridate)
-library(miceRanger)</code></pre>
+library(miceRanger)
+library(randomForest)</code></pre>
 <div id="q1.-missing-data" class="section level2">
 <h2>Q1. Missing data</h2>
 <p>Through the Shiny app developed in HW3, we observe abundant missing values in the MIMIC-IV ICU cohort we created. In this question, we use multiple imputation to obtain a data set without missing values.</p>
@@ -856,19 +862,19 @@ icu_comp3 &lt;- icu_comp[[3]]</code></pre>
 mat2 &lt;- model.matrix(~ ., data = icu_comp2)
 mat3 &lt;- model.matrix(~ ., data = icu_comp3)
 
-icu_comp &lt;- as.data.frame((mat1 + mat2 + mat3) / 3)</code></pre>
+icu_final &lt;- as.data.frame((mat1 + mat2 + mat3) / 3)</code></pre>
 <p>Now I will check how the categorical variables were averaged, and adjust them if needed:</p>
-<pre class="r"><code>icu_comp %&gt;% 
+<pre class="r"><code>icu_final %&gt;% 
   select(genderM) %&gt;% 
   unique(.)</code></pre>
 <pre><code>##   genderM
 ## 1       0
 ## 2       1</code></pre>
-<pre class="r"><code>icu_comp &lt;- icu_comp %&gt;% 
+<pre class="r"><code>icu_final &lt;- icu_final %&gt;% 
   mutate(marital_statusMARRIED = marital_statusMARRIED &gt; 0.5,
          marital_statusSINGLE = marital_statusSINGLE &gt; 0.5,
          marital_statusWIDOWED = marital_statusWIDOWED &gt; 0.5) </code></pre>
-<p>The complete, imputated, and averaged data set has been made and is called <code>icu_comp</code>.</p>
+<p>The complete, imputated, and averaged data set has been made and is called <code>icu_final</code>.</p>
 </div>
 </div>
 </div>
@@ -880,6 +886,121 @@ icu_comp &lt;- as.data.frame((mat1 + mat2 + mat3) / 3)</code></pre>
 <li><p>Train the models using the training set.</p></li>
 <li><p>Compare model prediction performance on the test set.</p></li>
 </ol>
+<div id="solution" class="section level3">
+<h3>Solution:</h3>
+<div id="part-1-partition-into-train-and-test-sets-stratifying-for-30-day-mortality-status." class="section level4">
+<h4>Part 1: Partition into train and test sets, stratifying for 30-day mortality status.</h4>
+<pre class="r"><code>icu_final %&gt;% 
+  select(death30days) %&gt;% 
+  table()</code></pre>
+<pre><code>## .
+##     0     1 
+## 45152  4896</code></pre>
+<pre class="r"><code>45152 * .8</code></pre>
+<pre><code>## [1] 36121.6</code></pre>
+<pre class="r"><code>4896 * .8</code></pre>
+<pre><code>## [1] 3916.8</code></pre>
+<pre class="r"><code>45152 * .2</code></pre>
+<pre><code>## [1] 9030.4</code></pre>
+<pre class="r"><code>4896 * .2</code></pre>
+<pre><code>## [1] 979.2</code></pre>
+<p>45,152 subjects did not die within 30 days of admission, and 4,896 subjects did die within 30 days of admission. Stratifying for 30-day mortality status, we want 36,122 who survived and 3,917 who died within 30 days in the training set. This will leave 9,030 survivors and 979 subjects who died within 30 days in the test set</p>
+<p>First I want to find all the indexes for patients who did and did not die within 30 days:</p>
+<pre class="r"><code>dead30 &lt;- which(icu_final$death30days == 1)
+survive30 &lt;- which(icu_final$death30days == 0)</code></pre>
+<p>Then I will randomly sample from these separate indexes the amount of subjects I want in the test set, making sure to set the option to sample <em>without</em> replacement. Combined, these indexes will indicate which rows from the whole data set to take for the test set.</p>
+<pre class="r"><code>set.seed(74802)
+test_dead_ind &lt;- sample(dead30, 979, replace = F)
+set.seed(62493)
+test_surv_ind &lt;- sample(survive30, 9030, replace = F)
+
+test_index &lt;- c(test_dead_ind, test_surv_ind)</code></pre>
+<p>Using the indexes I just defined above, I will create the test set, and the other rows will be used for the training set.</p>
+<pre class="r"><code>test &lt;- icu_final[test_index, ]
+train &lt;- icu_final[-test_index, ]</code></pre>
+<p>Now I just want to check that these test and training sets have the correct number of rows:</p>
+<pre class="r"><code>dim(test)</code></pre>
+<pre><code>## [1] 10009    31</code></pre>
+<pre class="r"><code>dim(train)</code></pre>
+<pre><code>## [1] 40039    31</code></pre>
+</div>
+<div id="part-2-training-the-models-using-the-training-set" class="section level4">
+<h4>Part 2: Training the models using the training set</h4>
+<p><strong>Logistic Regression</strong>:</p>
+<pre class="r"><code>train2 &lt;- train
+train2$death30days &lt;- as.factor(train2$death30days)
+
+train2 &lt;- train2 %&gt;% 
+  select(-&quot;(Intercept)&quot;)
+
+logis &lt;- glm(death30days ~ ., data = train2, family = binomial)</code></pre>
+<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
+<pre class="r"><code>summary(logis)</code></pre>
+<pre><code>## 
+## Call:
+## glm(formula = death30days ~ ., family = binomial, data = train2)
+## 
+## Deviance Residuals: 
+##    Min      1Q  Median      3Q     Max  
+## -3.210   0.000   0.000   0.000   1.369  
+## 
+## Coefficients:
+##                                        Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)                          -1.814e+01  5.627e+02  -0.032 0.974276    
+## subject_id                            2.088e-08  2.435e-08   0.857 0.391333    
+## marital_statusMARRIEDTRUE             4.618e-02  2.384e-01   0.194 0.846396    
+## marital_statusSINGLETRUE              2.866e-01  2.592e-01   1.105 0.268948    
+## marital_statusWIDOWEDTRUE             5.543e-01  3.202e-01   1.731 0.083400 .  
+## ethnicityASIAN                       -1.121e+01  5.627e+02  -0.020 0.984106    
+## `ethnicityBLACK/AFRICAN AMERICAN`    -1.155e+01  5.627e+02  -0.021 0.983626    
+## `ethnicityHISPANIC/LATINO`           -1.207e+01  5.627e+02  -0.021 0.982885    
+## ethnicityOTHER                       -1.186e+01  5.627e+02  -0.021 0.983178    
+## `ethnicityUNABLE TO OBTAIN`          -1.184e+01  5.627e+02  -0.021 0.983211    
+## ethnicityUNKNOWN                     -1.140e+01  5.627e+02  -0.020 0.983832    
+## ethnicityWHITE                       -1.166e+01  5.627e+02  -0.021 0.983474    
+## hospital_expire_flag                  3.254e+01  7.900e+02   0.041 0.967142    
+## genderM                              -5.182e-03  1.482e-01  -0.035 0.972111    
+## bicarbonate                          -6.047e-02  1.733e-02  -3.489 0.000485 ***
+## calcium                              -8.923e-02  6.765e-02  -1.319 0.187128    
+## chloride                             -8.192e-02  1.930e-02  -4.244 2.19e-05 ***
+## creatinine                            1.766e-02  6.044e-02   0.292 0.770156    
+## glucose                               1.608e-03  1.029e-03   1.563 0.118085    
+## magnesium                            -2.244e-01  1.731e-01  -1.296 0.194832    
+## potassium                             1.445e-01  9.517e-02   1.518 0.128952    
+## sodium                                7.121e-02  2.168e-02   3.285 0.001020 ** 
+## hematocrit                            8.689e-02  1.132e-02   7.674 1.67e-14 ***
+## wbc                                   4.352e-04  4.462e-03   0.098 0.922302    
+## heart_rate                           -5.728e-03  4.071e-03  -1.407 0.159464    
+## non_invasive_blood_pressure_systolic  8.349e-04  4.778e-03   0.175 0.861298    
+## non_invasive_blood_pressure_mean      4.435e-03  6.477e-03   0.685 0.493494    
+## respiratory_rate                     -6.624e-03  1.429e-02  -0.464 0.642973    
+## temperature_fahrenheit               -4.329e-02  4.976e-02  -0.870 0.384301    
+## admit_age                             2.435e-02  5.066e-03   4.806 1.54e-06 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 25648.0  on 40038  degrees of freedom
+## Residual deviance:  1584.3  on 40009  degrees of freedom
+## AIC: 1644.3
+## 
+## Number of Fisher Scoring iterations: 23</code></pre>
+<p>Test set:</p>
+<pre class="r"><code>logis_prob &lt;- predict(logis, newdata = test, type = &quot;response&quot;)
+head(logis_prob)</code></pre>
+<pre><code>##     30373     14354     33698     32437     45083     35545 
+## 0.8201884 0.9614620 0.9545308 0.9325692 0.9313895 0.9660137</code></pre>
+<pre class="r"><code>logis_pred &lt;- ifelse(logis_prob &gt; 0.5, 1, 0)
+table(logis_pred, test$death30days)</code></pre>
+<pre><code>##           
+## logis_pred    0    1
+##          0 8971    1
+##          1   59  978</code></pre>
+<pre class="r"><code>mean(logis_pred == test$death30days)</code></pre>
+<pre><code>## [1] 0.9940054</code></pre>
+</div>
+</div>
 </div>
 
 
