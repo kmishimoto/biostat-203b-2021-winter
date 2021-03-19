@@ -375,19 +375,34 @@ colnames(icu_dropped)
 
 #### Part 4: Impute missing values by `miceRanger` (request $m=3$ datasets). 
 
+Note: The following code took a little over an hour for me to run on my local computer. In order to prevent the TAs from having to wait that long for this to run, I have saved outputs from this code as files that will be included in the knitted file. 
 ```{r}
-require(miceRanger)
-set.seed(68519)
+if(!file.exists("icu_comp.rds")) {
+  require(miceRanger)
+  set.seed(68519)
 
-# Perform mice, return 3 datasets. 
-seqTime <- system.time(
-  miceObj <- miceRanger(icu_dropped, m = 3, returnModels = TRUE,
+  # Perform mice, return 3 datasets. 
+  seqTime <- system.time(
+     miceObj <- miceRanger(icu_dropped, m = 3, returnModels = TRUE,
                         verbose = FALSE, max.depth = 20))
+  icu_comp <- completeData(miceObj)
+  head(icu_comp[[1]])
+  saveRDS(icu_comp, file = "icu_comp.rds")
+  
+  distributions <- plotDistributions(miceObj)
+  ggsave("distributions.jpeg")
+  
+  correlations <- plotCorrelations(miceObj)
+  ggsave("correlations.jpeg")
+  
+  convergence <- plotVarConvergence(miceObj)
+  ggsave("convergence.jpeg")
+}
 ```
 
 ```{r}
-icu_comp <- completeData(miceObj)
-head(icu_comp[[1]])
+icu_comp <- readRDS("icu_comp.rds")
+
 icu_comp1 <- icu_comp[[1]]
 icu_comp2 <- icu_comp[[2]]
 icu_comp3 <- icu_comp[[3]]
@@ -397,40 +412,53 @@ icu_comp3 <- icu_comp[[3]]
 #### Part 5: Imputation Diagnositc Plots
 5. Make imputation diagnostic plots and explain what they mean.
 ```{r}
-plotDistributions(miceObj, vars = 'allNumeric')
-plotDistributions(miceObj, vars = 'allCategorical')
+if (exists('distributions')) {
+  print(distributions)
+}
 ```
-These plots compare the imputed distributions (black lines) to the original distributions (red). There are multiple black lines because each black line corresponds to a single generated dataset. Here we can see if the imputation preserved the features of the data set or not.
+
+The following code was written in reference to the _R Markdown Cookbook_ written by Yihui Xie, Christophe Dervieux, and Emily Riederer:
+
+```{r, results="asis"}
+if (!exists("distributions")) {
+  cat("![](./graphs/distributions.jpeg)")
+}
+```
+
+
+These plots compare the imputed distributions (black lines) to the original distributions (red). There are multiple black lines because each black line corresponds to a single generated dataset. Here we can see if the imputation preserved the features of the data set or not. We can see that the distributions from the imputation mostly follows the original distributions for the lab measurements, however, they don't follow the original distributions very closely for the vital measurements. 
 
 ```{r}
-plotCorrelations(miceObj, vars = 'allNumeric')
-plotCorrelations(miceObj, vars = 'allCategorical')
+if (exists("correlations")) {
+  print(correlations)
+}
 ```
+
+```{r, results = "asis"}
+if (!exists("correlations")) {
+  cat("![](./graphs/correlations.jpeg)")
+}  
+```
+
 The above plots allow us to examine if the imputed values of our datasets converged or not. The correlations above is between imputed values in every combination of datasets.
 
 ```{r}
-plotVarConvergence(miceObj, vars = 'allNumeric')
-plotVarConvergence(miceObj, vars = 'allCategorical')
+if (exists("convergence")) {
+  print(convergence)
+}
 ```
 
-```{r}
-miceObj2 <- addIterations(miceObj, iters=2, verbose=FALSE)
-miceObj2 <- addIterations(miceObj, iters=5, verbose=FALSE)
-
-plotDistributions(miceObj2, vars = 'allNumeric')
-plotDistributions(miceObj2, vars = 'allCategorical')
-
-plotCorrelations(miceObj2, vars = 'allNumeric')
-plotCorrelations(miceObj2, vars = 'allCategorical')
-
-plotVarConvergence(miceObj2, vars = 'allNumeric')
-plotVarConvergence(miceObj2, vars = 'allCategorical')
+```{r, results = "asis"}
+if (!exists("convergence")) {
+  cat("![](./graphs/convergence.jpeg)")
+}
 ```
 
+The above plots help us to examine the convergence of measures of center and variance for our imputed variables over the iterations. 
+
+#### Part 6: Obtain complete data by averaging 3 imputed data sets
 
 
-
-6. Obtain a complete data set by averaging the 3 imputed data sets.
 
 
 ## Q2. Predicting 30-day mortality
