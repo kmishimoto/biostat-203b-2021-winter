@@ -33,15 +33,6 @@ Through the Shiny app developed in HW3, we observe abundant missing values in th
 
     A more thorough book treatment of the practical imputation strategies is the book [*_Flexible Imputation of Missing Data_*](https://stefvanbuuren.name/fimd/) by Stef van Buuren. 
 
-
-3. Perform a data quality check of the ICU stays data. Discard variables with substantial missingness, say >5000 `NA`s. Replace apparent data entry errors by `NA`s.
-
-4. Impute missing values by `miceRanger` (request $m=3$ datasets). This step is very computational intensive. Make sure to save the imputation results as a file.
-
-5. Make imputation diagnostic plots and explain what they mean.
-
-6. Obtain a complete data set by averaging the 3 imputed data sets.
-
 ### Q1 Solution:
 
 #### Part 1: Explain the jargon MCAR, MAR, and MNAR.
@@ -72,7 +63,7 @@ First, read in the data:
 icu_cohort <- readRDS("icu_cohort.rds")
 ```
 
-Next, we need to see if there are data entry errors, and make sure that missing data is coded as `NA`. Before I go into the analysis. I want to say that I have little to no knowledge of ranges for normal vital measurements. Therefore, unless otherwise stated, I have used the rule: 1.5 times the interquartile range to determine the steps from the first and third quartile to determine the range of "normal" values. Anything outside of this range are values that I will treat as data entry errors and re-coded as `NA`. This is a range that could be adjusted in the future if needed.
+Next, we need to see if there are data entry errors, and make sure that missing data is coded as `NA`. Before I go into the analysis. I want to say that I have little to no knowledge of ranges for normal vital measurements. Therefore, unless otherwise stated, I have used the rule: 1.5 times the interquartile range to determine the steps from the first and third quartile to determine the range of "normal" values. Anything outside of this range are values that I will treat as data entry errors and re-coded as `NA`. This is a range that could be adjusted in the future by consulting with the people who provided the data if needed.
 
 **MAYBE DON'T INCLUDE THIS NEXT PART**: (because Dr. Zhou wants us to include ethnicity in our analysis in Q2)
 For ethnicity, some entries are coded as `UNABLE TO OBTAIN` and `UNKNOWN`. I will change these values to `NA`:
@@ -385,7 +376,7 @@ if(!file.exists("icu_comp.rds")) {
   # Perform mice, return 3 datasets. 
   seqTime <- system.time(
      miceObj <- miceRanger(icu_dropped, m = 3, returnModels = TRUE,
-                        verbose = FALSE, max.depth = 20))
+                        verbose = FALSE, max.depth = 10))
   icu_comp <- completeData(miceObj)
   head(icu_comp[[1]])
   saveRDS(icu_comp, file = "icu_comp.rds")
@@ -412,7 +403,6 @@ icu_comp3 <- icu_comp[[3]]
 
 
 #### Part 5: Imputation Diagnositc Plots
-5. Make imputation diagnostic plots and explain what they mean.
 ```{r}
 if (exists('distributions')) {
   print(distributions)
@@ -428,7 +418,7 @@ if (!exists("distributions")) {
 ```
 
 
-These plots compare the imputed distributions (black lines) to the original distributions (red). There are multiple black lines because each black line corresponds to a single generated dataset. Here we can see if the imputation preserved the features of the data set or not. We can see that the distributions from the imputation mostly follows the original distributions for the lab measurements, however, they don't follow the original distributions very closely for the vital measurements. 
+These plots compare the imputed distributions (black lines or black dots) to the original distributions (red line or the grayed out bar plot). There are multiple black lines because each black line corresponds to a single generated data set. Here we can see if the imputation preserved the features of the data set or not. We can see that the distributions from the imputation mostly follows the original distributions for the lab measurements, however, they don't follow the original distributions very closely for the vital measurements. 
 
 ```{r}
 if (exists("correlations")) {
@@ -460,7 +450,9 @@ The above plots help us to examine the convergence of measures of center and var
 
 #### Part 6: Obtain complete data by averaging 3 imputed data sets
 
-First, I will convert the three data sets to matrices, with each categorical variable coded with dummy variables. Then I will average over the three data sets and convert it back into a data frame:
+I will actually be making two complete data sets: one with categorical variables coded with dummy variables (to use with logistic regression), and one with categorical variables not coded as dummy variables (to use with random forests). 
+
+I will make the complete data set with dummy variables first. I start by converting the three data sets to matrices, with each categorical variable coded with dummy variables. Then I will average over the three data sets and convert it back into a data frame:
 ```{r}
 mat1 <- model.matrix(~ ., data = icu_comp1)
 mat2 <- model.matrix(~ ., data = icu_comp2)
@@ -469,19 +461,54 @@ mat3 <- model.matrix(~ ., data = icu_comp3)
 icu_final <- as.data.frame((mat1 + mat2 + mat3) / 3)
 ```
 
-Now I will check how the categorical variables were averaged, and adjust them if needed:
+Now I will check how the categorical variables were averaged, and adjust them if needed. I also want to make sure that `death30days` is treated as a factor. Furthermore, the variable `hospital_expire_flag`, `(Intercept)`, and `subject_id` will not be used in the final analysis, so I will drop them.
 ```{r}
+# gender is coded correctly
 icu_final %>% 
   select(genderM) %>% 
   unique(.)
 
+# need to adjust the marital status variable
 icu_final <- icu_final %>% 
   mutate(marital_statusMARRIED = marital_statusMARRIED > 0.5,
          marital_statusSINGLE = marital_statusSINGLE > 0.5,
-         marital_statusWIDOWED = marital_statusWIDOWED > 0.5) 
+         marital_statusWIDOWED = marital_statusWIDOWED > 0.5) %>% 
+  mutate(death30days = as.factor(death30days)) %>% 
+  select(- hospital_expire_flag, - "(Intercept)", - subject_id)
 ```
 
-The complete, imputated, and averaged data set has been made and is called `icu_final`.
+For random forests, we do not need to have categorical variables coded as dummy variables. Therefore, I will create another averaged matrix with no dummy variables:
+
+```{r}
+m1 <- data.matrix(icu_comp1)
+m2 <- data.matrix(icu_comp2)
+m3 <- data.matrix(icu_comp3)
+
+icu_finalRF <- as.data.frame((m1 + m2 + m3) / 3)
+```
+
+Now I need to make sure the categorical variables are averaged correctly and coded as integers, then I can convert them to factors. Finally, I also don't need the variables `hospital_expire_flag` or `subject_id` in my analysis, so I drop them.
+```{r}
+icu_finalRF$marital_status <-as.factor(round(icu_finalRF$marital_status))
+
+# checking that these imputed categorical variables averaged correctly:
+unique(icu_finalRF$marital_status)
+unique(icu_finalRF$gender)
+
+# coding categorical variables as factors
+icu_finalRF$gender <- as.factor(icu_finalRF$gender)
+icu_finalRF$ethnicity <- as.factor(icu_finalRF$ethnicity)
+icu_finalRF$death30days <- as.factor(icu_finalRF$death30days)
+
+# dropping variables not necessary for analysis
+icu_finalRF <- icu_finalRF %>% 
+  select(- hospital_expire_flag, - subject_id)
+```
+
+
+The complete, imputated, and averaged data set with dummy variables has been made and is called `icu_final`. This data set will be used with logistic regression. 
+
+The other complete, imputated, and averaged data set without dummy variables is called `icu_finalRF` and will be used with random forests.
 
 
 ## Q2. Predicting 30-day mortality
@@ -496,18 +523,18 @@ Develop at least two analytic approaches for predicting the 30-day mortality of 
 
 ### Solution:
 
+I will use logistic regression and random forest to predict the 30-day mortality of patients. 
+
 #### Part 1: Partition into train and test sets, stratifying for 30-day mortality status.
 
+First let's look at the number of patients who survived past 30 days and who died within 30 days of admission in our data set:
 ```{r}
 icu_final %>% 
   select(death30days) %>% 
   table()
 
-45152 * .8
-4896 * .8
-
-45152 * .2
-4896 * .2
+cat("training set: survived -", 45152 * .8, "; died -", 4896 * .8, 
+    "\ntest set: survived -", 45152 * .2, "; died -", 4896 * .2)
 ```
 
 45,152 subjects did not die within 30 days of admission, and 4,896 subjects did die within 30 days of admission. Stratifying for 30-day mortality status, we want 36,122 who survived and 3,917 who died within 30 days in the training set. This will leave 9,030 survivors and 979 subjects who died within 30 days in the test set
@@ -539,6 +566,12 @@ Now I just want to check that these test and training sets have the correct numb
 dim(test)
 dim(train)
 ```
+Now I also want to create training and test sets for the data set I will use with random forests. I can use the indexes I created before to create these sets:
+```{r}
+testrf <- icu_finalRF[test_index, ]
+trainrf <- icu_finalRF[-test_index, ]
+```
+
 
 #### Part 2: Training the models using the training set
 
@@ -546,23 +579,64 @@ dim(train)
 
 ```{r}
 train2 <- train
-train2$death30days <- as.factor(train2$death30days)
-
-train2 <- train2 %>% 
-  select(-"(Intercept)")
 
 logis <- glm(death30days ~ ., data = train2, family = binomial)
 summary(logis)
 ```
 
-Test set:
+
+**Random Forest**:
+
+First I want to find the optimal number of predictor variables to try at each split:
+```{r}
+predictors <- trainrf %>% 
+ select(-death30days)
+
+set.seed(60280)
+tune <- tuneRF(x = predictors, y = trainrf$death30days,
+       ntreeTry = 75, mtryStart = 4)
+```
+
+It appears that using 4 predictor variables at each split is a good choice. 
+
+Now I will run the random forest model fit on the training set. I use 175 trees. When I used 200 trees, it requires more memory than my computer could handle. 
+```{r}
+set.seed(95348)
+rfor <- randomForest(death30days ~ ., data = trainrf, ntree = 175, mtry = 4)
+rfor
+
+# set.seed(95348)
+# rfor1 <- randomForest(death30days ~ ., data = trainrf, ntree = 200, mtry = 4)
+```
+
+#### Part 3: Model Prediction Performance on the Test Set
+
+**Logistic Regression**
+
+Predicting probabilities using the test set:
 ```{r}
 logis_prob <- predict(logis, newdata = test, type = "response")
 head(logis_prob)
+```
 
+Now we use these probabilities to classify observations as either predicting that patient will die within 30 days (`death30days = 1`) or not (`death30days = 0`). The rule that I use is that if the probability is above 50% then I will classify the observation as predicting the patient to die within 30 days. 
+```{r}
 logis_pred <- ifelse(logis_prob > 0.5, 1, 0)
-table(logis_pred, test$death30days)
+```
 
+Now we can look at a 2-way contingency table of the predicted values versus the real values, and we can calculate the prediction accuracy we get from this logistic regression model: 
+```{r}
+table(logis_pred, test$death30days)
 mean(logis_pred == test$death30days)
 ```
 
+We find that 90.40% of the test data was classified correctly.
+
+
+**Random Forest**
+```{r}
+rfor_pred <- predict(rfor, newdata = testrf)
+mean(rfor_pred == testrf$death30days)
+```
+
+We find that 90.75% of the test data was classified correctly, just a little higher accuracy than the logistic regression model. 
