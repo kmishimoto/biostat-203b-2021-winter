@@ -494,17 +494,10 @@ library(randomForest)</code></pre>
 <p><em>Discard variables with substantial missingness, say &gt;5000 <code>NA</code>s. Replace apparent data entry errors by <code>NA</code>s.</em></p>
 <p>First, read in the data:</p>
 <pre class="r"><code>icu_cohort &lt;- readRDS(&quot;icu_cohort.rds&quot;)</code></pre>
-<p>Next, we need to see if there are data entry errors, and make sure that missing data is coded as <code>NA</code>. Before I go into the analysis. I want to say that I have little to no knowledge of ranges for normal vital measurements. Therefore, unless otherwise stated, I have used the rule: 1.5 times the interquartile range to determine the steps from the first and third quartile to determine the range of “normal” values. Anything outside of this range are values that I will treat as data entry errors and re-coded as <code>NA</code>. This is a range that could be adjusted in the future by consulting with the people who provided the data if needed.</p>
-<p><strong>MAYBE DON’T INCLUDE THIS NEXT PART</strong>: (because Dr. Zhou wants us to include ethnicity in our analysis in Q2) For ethnicity, some entries are coded as <code>UNABLE TO OBTAIN</code> and <code>UNKNOWN</code>. I will change these values to <code>NA</code>:</p>
-<pre class="r"><code>dim(icu_cohort)
-
-for (i in 1:50048) {
-  if (icu_cohort$ethnicity[i] == &quot;UNKNOWN&quot; |
-      icu_cohort$ethnicity[i] == &quot;UNABLE TO OBTAIN&quot;) {
-    icu_cohort$ethnicity[i] &lt;- NA
-      }
-}</code></pre>
-<p>Now, we look at heart rate. Normally, the heart rate shouldn’t be below 60 beats per minute (bpm) nor above 200 bpm. When sleeping, the heart rate can fall to as low as 40 bpm. Using the 1.5 times IQR to find the range of values to keep:</p>
+<p>Next, we need to see if there are data entry errors, and make sure that missing data is coded as <code>NA</code>. Before I go into the analysis. I want to say that I have little to no knowledge of ranges for normal vital measurements. I used one of two criteria to determine a range of “possible” (i.e. not impossible data-entry error) values for variables. Unless otherwise stated, for the vital measurements I have used the rule: 1.5 times the interquartile range to determine the steps from the first and third quartile to determine the range of “normal” values. Anything outside of this range are values that I will treat as data entry errors and re-coded as <code>NA</code>. And for the lab measurements, unless otherwise stated, I have used zero as the lower bound of possible values and the 99.9th percentile for the possible upper bounds. These are ranges that could be adjusted in the future by consulting with the people who provided the data if needed.</p>
+<p>Also, when looking at the lab measurements from the descriptive plots made in the previous homework, it does not seem that all distributions have egregious outliers. Keeping this in mind, I will only be looking at the measurements whose distributions look like there could be measurement errors (many high outliers). These variables include: <code>creatinine</code>, <code>glucose</code>, <code>magnesium</code>, <code>potassium</code>, and <code>WBC</code>.</p>
+<p><em>Vital Measurements</em></p>
+<p>Now, I will start by looking at heart rate. Normally, the heart rate shouldn’t be below 60 beats per minute (bpm) nor above 200 bpm. When sleeping, the heart rate can fall to as low as 40 bpm. Using the 1.5 times IQR to find the range of values to keep:</p>
 <pre class="r"><code>Q &lt;- quantile(icu_cohort$heart_rate, 
          probs = c(0.05, 0.25, 0.75, 0.95), na.rm = TRUE)
 names(Q) &lt;- NULL
@@ -703,6 +696,301 @@ icu_cohort %&gt;%
 ##     min   max
 ##   &lt;dbl&gt; &lt;dbl&gt;
 ## 1    35   126</code></pre>
+<p><em>Lab Measurements</em></p>
+<p>I will now look at the creatinine variable, and determine which cutoff points I should use for determining data entry errors:</p>
+<pre class="r"><code>Q &lt;- quantile(icu_cohort$creatinine, 
+         probs = c(0.001, 0.25, 0.75, 0.999), na.rm = TRUE)
+#names(Q) &lt;- NULL
+lower &lt;- Q[2] - (Q[3] - Q[2]) * 1.5
+upper &lt;- Q[3] + (Q[3] - Q[2]) * 1.5
+
+lower1 &lt;- Q[1]
+upper1 &lt;- Q[4]
+
+print(c(lower, upper))</code></pre>
+<pre><code>##  25%  75% 
+## -0.2  2.2</code></pre>
+<pre class="r"><code>print(c(lower1, upper1))</code></pre>
+<pre><code>##    0.1%   99.9% 
+##  0.2000 15.8792</code></pre>
+<pre class="r"><code>icu_cohort %&gt;% 
+  select(creatinine) %&gt;% 
+  filter(!is.na(creatinine)) %&gt;% 
+  filter(creatinine &gt; upper) %&gt;% 
+  # ggplot() +
+  # geom_histogram(aes(x = creatinine))
+  summarize(min = min(.), max = max(.), count = n())</code></pre>
+<pre><code>## # A tibble: 1 x 3
+##     min   max count
+##   &lt;dbl&gt; &lt;dbl&gt; &lt;int&gt;
+## 1   2.3  36.9  4693</code></pre>
+<pre class="r"><code>icu_cohort %&gt;% 
+  select(creatinine) %&gt;% 
+  filter(!is.na(creatinine)) %&gt;% 
+  filter(creatinine &gt; upper1) %&gt;% 
+  # ggplot() +
+  # geom_histogram(aes(x = creatinine))
+  summarize(min = min(.), max = max(.), count = n())</code></pre>
+<pre><code>## # A tibble: 1 x 3
+##     min   max count
+##   &lt;dbl&gt; &lt;dbl&gt; &lt;int&gt;
+## 1  15.9  36.9    50</code></pre>
+<p>The minimum creatinine level should be zero. Taking into consideration the distribution of creatinine, and how many observations would be deleted for the above cutoffs, I will use the 99.9th percentile as the upper limit cutoff for determining data entry errors (coded as <code>upper1</code>).</p>
+<pre class="r"><code>for (i in 1:50048) {
+  if (!is.na(icu_cohort$creatinine[i]) &amp; 
+      icu_cohort$creatinine[i] &lt; 0) {
+    icu_cohort$creatinine[i] &lt;- NA
+  } else if (!is.na(icu_cohort$creatinine[i]) &amp; 
+             icu_cohort$creatinine[i] &gt; upper1) {
+    icu_cohort$creatinine[i] &lt;- NA
+  }
+}
+
+icu_cohort %&gt;% 
+  select(creatinine) %&gt;% 
+  filter(!is.na(creatinine)) %&gt;% 
+  summarize(min = min(.), max = max(.))</code></pre>
+<pre><code>## # A tibble: 1 x 2
+##     min   max
+##   &lt;dbl&gt; &lt;dbl&gt;
+## 1     0  15.8</code></pre>
+<p>Next, I will look at glucose. The minimum glucose level should be 0.</p>
+<pre class="r"><code>Q &lt;- quantile(icu_cohort$glucose, 
+         probs = c(0.001, 0.25, 0.75, 0.999), na.rm = TRUE)
+#names(Q) &lt;- NULL
+lower &lt;- Q[2] - (Q[3] - Q[2]) * 1.5
+upper &lt;- Q[3] + (Q[3] - Q[2]) * 1.5
+
+lower1 &lt;- Q[1]
+upper1 &lt;- Q[4]
+
+print(c(lower, upper))</code></pre>
+<pre><code>##   25%   75% 
+##  23.5 235.5</code></pre>
+<pre class="r"><code>print(c(lower1, upper1))</code></pre>
+<pre><code>##    0.1%   99.9% 
+##  37.000 797.803</code></pre>
+<pre class="r"><code>icu_cohort %&gt;% 
+  select(glucose) %&gt;% 
+  filter(!is.na(glucose)) %&gt;% 
+  filter(glucose &gt; upper) %&gt;% 
+  # ggplot() +
+  # geom_histogram(aes(x = glucose))
+  summarize(min = min(.), max = max(.), count = n())</code></pre>
+<pre><code>## # A tibble: 1 x 3
+##     min   max count
+##   &lt;dbl&gt; &lt;dbl&gt; &lt;int&gt;
+## 1   236  2440  3352</code></pre>
+<pre class="r"><code>icu_cohort %&gt;% 
+  select(glucose) %&gt;% 
+  filter(!is.na(glucose)) %&gt;% 
+  filter(glucose &gt; upper1) %&gt;%
+  # ggplot() +
+  # geom_histogram(aes(x = glucose))
+  summarize(min = min(.), max = max(.), count = n())</code></pre>
+<pre><code>## # A tibble: 1 x 3
+##     min   max count
+##   &lt;dbl&gt; &lt;dbl&gt; &lt;int&gt;
+## 1   798  2440    50</code></pre>
+<p>The minimum glucose level should be zero, I think. Taking into consideration the distribution of glucose, and how many observations would be deleted for the above cutoffs, I will use the 99.9th percentile as the upper limit cutoff for determining data entry errors (coded as <code>upper1</code>).</p>
+<pre class="r"><code>for (i in 1:50048) {
+  if (!is.na(icu_cohort$glucose[i]) &amp; 
+      icu_cohort$glucose[i] &lt; 0) {
+    icu_cohort$glucose[i] &lt;- NA
+  } else if (!is.na(icu_cohort$glucose[i]) &amp; 
+             icu_cohort$glucose[i] &gt; upper1) {
+    icu_cohort$glucose[i] &lt;- NA
+  }
+}
+
+icu_cohort %&gt;% 
+  select(glucose) %&gt;% 
+  filter(!is.na(glucose)) %&gt;% 
+  summarize(min = min(.), max = max(.))</code></pre>
+<pre><code>## # A tibble: 1 x 2
+##     min   max
+##   &lt;dbl&gt; &lt;dbl&gt;
+## 1     7   797</code></pre>
+<p>Next, I will look at magnesium The minimum magnesium level should be 0.</p>
+<pre class="r"><code>Q &lt;- quantile(icu_cohort$magnesium, 
+         probs = c(0.001, 0.25, 0.75, 0.999), na.rm = TRUE)
+#names(Q) &lt;- NULL
+lower &lt;- Q[2] - (Q[3] - Q[2]) * 1.5
+upper &lt;- Q[3] + (Q[3] - Q[2]) * 1.5
+
+lower1 &lt;- Q[1]
+upper1 &lt;- Q[4]
+
+print(c(lower, upper))</code></pre>
+<pre><code>##  25%  75% 
+## 0.95 2.95</code></pre>
+<pre class="r"><code>print(c(lower1, upper1))</code></pre>
+<pre><code>##  0.1% 99.9% 
+##   0.8   4.6</code></pre>
+<pre class="r"><code>icu_cohort %&gt;% 
+  select(magnesium) %&gt;% 
+  filter(!is.na(magnesium)) %&gt;% 
+  filter(magnesium &gt; upper) %&gt;% 
+  # ggplot() +
+  # geom_histogram(aes(x = magnesium))
+  summarize(min = min(.), max = max(.), count = n())</code></pre>
+<pre><code>## # A tibble: 1 x 3
+##     min   max count
+##   &lt;dbl&gt; &lt;dbl&gt; &lt;int&gt;
+## 1     3    47  1449</code></pre>
+<pre class="r"><code>icu_cohort %&gt;% 
+  select(magnesium) %&gt;% 
+  filter(!is.na(magnesium)) %&gt;% 
+  filter(magnesium &gt; upper1) %&gt;%
+  # ggplot() +
+  # geom_histogram(aes(x = magnesium))
+  summarize(min = min(.), max = max(.), count = n())</code></pre>
+<pre><code>## # A tibble: 1 x 3
+##     min   max count
+##   &lt;dbl&gt; &lt;dbl&gt; &lt;int&gt;
+## 1   4.7    47    45</code></pre>
+<p>The minimum magnesium level should be zero, I think. Taking into consideration the distribution of magnesium, and how many observations would be deleted for the above cutoffs, I will use the 99.9th percentile as the upper limit cutoff for determining data entry errors (coded as <code>upper1</code>).</p>
+<pre class="r"><code>for (i in 1:50048) {
+  if (!is.na(icu_cohort$magnesium[i]) &amp; 
+      icu_cohort$magnesium[i] &lt; 0) {
+    icu_cohort$magnesium[i] &lt;- NA
+  } else if (!is.na(icu_cohort$magnesium[i]) &amp; 
+             icu_cohort$magnesium[i] &gt; upper1) {
+    icu_cohort$magnesium[i] &lt;- NA
+  }
+}
+
+icu_cohort %&gt;% 
+  select(magnesium) %&gt;% 
+  filter(!is.na(magnesium)) %&gt;% 
+  summarize(min = min(.), max = max(.))</code></pre>
+<pre><code>## # A tibble: 1 x 2
+##     min   max
+##   &lt;dbl&gt; &lt;dbl&gt;
+## 1     0   4.6</code></pre>
+<p>Next, I will look at potassium. The minimum potassium level should be 0.</p>
+<pre class="r"><code>Q &lt;- quantile(icu_cohort$potassium, 
+         probs = c(0.001, 0.25, 0.75, 0.999), na.rm = TRUE)
+#names(Q) &lt;- NULL
+lower &lt;- Q[2] - (Q[3] - Q[2]) * 1.5
+upper &lt;- Q[3] + (Q[3] - Q[2]) * 1.5
+
+lower1 &lt;- Q[1]
+upper1 &lt;- Q[4]
+
+print(c(lower, upper))</code></pre>
+<pre><code>## 25% 75% 
+## 2.5 5.7</code></pre>
+<pre class="r"><code>print(c(lower1, upper1))</code></pre>
+<pre><code>##  0.1% 99.9% 
+##   2.2   8.4</code></pre>
+<pre class="r"><code>icu_cohort %&gt;% 
+  select(potassium) %&gt;% 
+  filter(!is.na(potassium)) %&gt;% 
+  summarize(min = min(.), max = max(.))</code></pre>
+<pre><code>## # A tibble: 1 x 2
+##     min   max
+##   &lt;dbl&gt; &lt;dbl&gt;
+## 1   0.8    13</code></pre>
+<pre class="r"><code>icu_cohort %&gt;% 
+  select(potassium) %&gt;% 
+  filter(!is.na(potassium)) %&gt;% 
+  filter(potassium &gt; upper) %&gt;% 
+  # ggplot() +
+  # geom_histogram(aes(x = potassium))
+  summarize(min = min(.), max = max(.), count = n())</code></pre>
+<pre><code>## # A tibble: 1 x 3
+##     min   max count
+##   &lt;dbl&gt; &lt;dbl&gt; &lt;int&gt;
+## 1   5.7    13  1557</code></pre>
+<pre class="r"><code>icu_cohort %&gt;% 
+  select(potassium) %&gt;% 
+  filter(!is.na(potassium)) %&gt;% 
+  filter(potassium &gt; upper1) %&gt;%
+  # ggplot() +
+  # geom_histogram(aes(x = potassium))
+  summarize(min = min(.), max = max(.), count = n())</code></pre>
+<pre><code>## # A tibble: 1 x 3
+##     min   max count
+##   &lt;dbl&gt; &lt;dbl&gt; &lt;int&gt;
+## 1   8.5    13    47</code></pre>
+<p>Looking at the values of potassium, although the distribution is skewed, it does not seem as if there are any values that would be impossible to observe. In other words, it doesn’t seem like there are any data entry errors, so no values will be marked as missing.</p>
+<p>Next, I will look at WBC:</p>
+<pre class="r"><code>Q &lt;- quantile(icu_cohort$wbc, 
+         probs = c(0.001, 0.25, 0.75, 0.999), na.rm = TRUE)
+#names(Q) &lt;- NULL
+lower &lt;- Q[2] - (Q[3] - Q[2]) * 1.5
+upper &lt;- Q[3] + (Q[3] - Q[2]) * 1.5
+
+lower1 &lt;- Q[1]
+upper1 &lt;- Q[4]
+
+print(c(lower, upper))</code></pre>
+<pre><code>##  25%  75% 
+## -2.6 24.6</code></pre>
+<pre class="r"><code>print(c(lower1, upper1))</code></pre>
+<pre><code>##    0.1%   99.9% 
+##   0.100 110.052</code></pre>
+<pre class="r"><code>icu_cohort %&gt;% 
+  select(wbc) %&gt;% 
+  filter(!is.na(wbc)) %&gt;% 
+  filter(wbc &gt; upper) %&gt;% 
+  # ggplot() +
+  # geom_histogram(aes(x = wbc))
+  summarize(min = min(.), max = max(.), count = n())</code></pre>
+<pre><code>## # A tibble: 1 x 3
+##     min   max count
+##   &lt;dbl&gt; &lt;dbl&gt; &lt;int&gt;
+## 1  24.7  572.  1949</code></pre>
+<pre class="r"><code>icu_cohort %&gt;% 
+  select(wbc) %&gt;% 
+  filter(!is.na(wbc)) %&gt;% 
+  filter(wbc &gt; upper1) %&gt;%
+  # ggplot() +
+  # geom_histogram(aes(x = wbc))
+  summarize(min = min(.), max = max(.), count = n())</code></pre>
+<pre><code>## # A tibble: 1 x 3
+##     min   max count
+##   &lt;dbl&gt; &lt;dbl&gt; &lt;int&gt;
+## 1  110.  572.    50</code></pre>
+<p>The minimum wbc level should be zero, I think. Taking into consideration the distribution of wbc, and how many observations would be deleted for the above cutoffs, I will use the 99.9th percentile as the upper limit cutoff for determining data entry errors (coded as <code>upper1</code>).</p>
+<pre class="r"><code>for (i in 1:50048) {
+  if (!is.na(icu_cohort$wbc[i]) &amp; 
+      icu_cohort$wbc[i] &lt; 0) {
+    icu_cohort$wbc[i] &lt;- NA
+  } else if (!is.na(icu_cohort$wbc[i]) &amp; 
+             icu_cohort$wbc[i] &gt; upper1) {
+    icu_cohort$wbc[i] &lt;- NA
+  }
+}
+
+icu_cohort %&gt;% 
+  select(wbc) %&gt;% 
+  filter(!is.na(wbc)) %&gt;% 
+  summarize(min = min(.), max = max(.))</code></pre>
+<pre><code>## # A tibble: 1 x 2
+##     min   max
+##   &lt;dbl&gt; &lt;dbl&gt;
+## 1     0  107.</code></pre>
+<p>The minimum wbc level should be zero, I think. Taking into consideration the distribution of wbc, and how many observations would be deleted for the above cutoffs, I will use the 99.9th percentile as the upper limit cutoff for determining data entry errors (coded as <code>upper1</code>).</p>
+<pre class="r"><code>for (i in 1:50048) {
+  if (!is.na(icu_cohort$wbc[i]) &amp; 
+      icu_cohort$wbc[i] &lt; 0) {
+    icu_cohort$wbc[i] &lt;- NA
+  } else if (!is.na(icu_cohort$wbc[i]) &amp; 
+             icu_cohort$wbc[i] &gt; upper1) {
+    icu_cohort$wbc[i] &lt;- NA
+  }
+}
+
+icu_cohort %&gt;% 
+  select(wbc) %&gt;% 
+  filter(!is.na(wbc)) %&gt;% 
+  summarize(min = min(.), max = max(.))</code></pre>
+<pre><code>## # A tibble: 1 x 2
+##     min   max
+##   &lt;dbl&gt; &lt;dbl&gt;
+## 1     0  107.</code></pre>
 <p>Taking a look at the 30 day death indicator:</p>
 <pre class="r"><code>unique(icu_cohort$death30days)</code></pre>
 <pre><code>## [1]    NA  TRUE FALSE</code></pre>
@@ -1057,7 +1345,7 @@ head(logis_prob)</code></pre>
 ##          1   69   86</code></pre>
 <pre class="r"><code>mean(logis_pred == test$death30days)</code></pre>
 <pre><code>## [1] 0.9038865</code></pre>
-<p>We find that 90.40% of the test data was classified correctly.</p>
+<p>We find that 90.39% of the test data was classified correctly.</p>
 <p><strong>Random Forest</strong></p>
 <pre class="r"><code>rfor_pred &lt;- predict(rfor, newdata = testrf)
 mean(rfor_pred == testrf$death30days)</code></pre>
