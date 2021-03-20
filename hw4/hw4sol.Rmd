@@ -375,7 +375,7 @@ icu_cohort %>%
   summarize(min = min(.), max = max(.), count = n())
 ```
 
-The minimum glucose level should be zero, I think. Taking into consideration the distribution of glucose, and how many observations would be deleted for the above cutoffs, I will use the 99.9th percentile as the upper limit cutoff for determining data entry errors (coded as `upper1`). 
+Taking into consideration the distribution of glucose, and how many observations would be deleted for the above cutoffs, I will use the 99.9th percentile as the upper limit cutoff for determining data entry errors (coded as `upper1`). 
 
 ```{r}
 for (i in 1:50048) {
@@ -394,7 +394,7 @@ icu_cohort %>%
   summarize(min = min(.), max = max(.))
 ```
 
-Next, I will look at magnesium The minimum magnesium level should be 0. 
+Next, I will look at magnesium. The minimum magnesium level should be 0. 
 ```{r}
 Q <- quantile(icu_cohort$magnesium, 
          probs = c(0.001, 0.25, 0.75, 0.999), na.rm = TRUE)
@@ -425,7 +425,7 @@ icu_cohort %>%
   summarize(min = min(.), max = max(.), count = n())
 ```
 
-The minimum magnesium level should be zero, I think. Taking into consideration the distribution of magnesium, and how many observations would be deleted for the above cutoffs, I will use the 99.9th percentile as the upper limit cutoff for determining data entry errors (coded as `upper1`). 
+Taking into consideration the distribution of magnesium, and how many observations would be deleted for the above cutoffs, I will use the 99.9th percentile as the upper limit cutoff for determining data entry errors (coded as `upper1`). 
 
 ```{r}
 for (i in 1:50048) {
@@ -515,26 +515,7 @@ icu_cohort %>%
   summarize(min = min(.), max = max(.), count = n())
 ```
 
-The minimum wbc level should be zero, I think. Taking into consideration the distribution of wbc, and how many observations would be deleted for the above cutoffs, I will use the 99.9th percentile as the upper limit cutoff for determining data entry errors (coded as `upper1`). 
-
-```{r}
-for (i in 1:50048) {
-  if (!is.na(icu_cohort$wbc[i]) & 
-      icu_cohort$wbc[i] < 0) {
-    icu_cohort$wbc[i] <- NA
-  } else if (!is.na(icu_cohort$wbc[i]) & 
-             icu_cohort$wbc[i] > upper1) {
-    icu_cohort$wbc[i] <- NA
-  }
-}
-
-icu_cohort %>% 
-  select(wbc) %>% 
-  filter(!is.na(wbc)) %>% 
-  summarize(min = min(.), max = max(.))
-```
-
-The minimum wbc level should be zero, I think. Taking into consideration the distribution of wbc, and how many observations would be deleted for the above cutoffs, I will use the 99.9th percentile as the upper limit cutoff for determining data entry errors (coded as `upper1`). 
+Taking into consideration the distribution of wbc, and how many observations would be deleted for the above cutoffs, I will use the 99.9th percentile as the upper limit cutoff for determining data entry errors (coded as `upper1`). 
 
 ```{r}
 for (i in 1:50048) {
@@ -579,6 +560,7 @@ for (i in 1:50048) {
 unique(icu_cohort$death30days)
 ```
 
+_Finding which columns to drop that have too many missing values_
 
 Finding the number of missing values in each column:
 ```{r}
@@ -832,6 +814,8 @@ summary(logis)
 
 
 **Random Forest**:
+
+I wrote the following code referencing an online article by [Statology about Random Forests](https://www.statology.org/random-forest-in-r/#:~:text=%20How%20to%20Build%20Random%20Forests%20in%20R,function%20uses%20500%20trees%20and%20%28total...%20More%20).
 
 First I want to find the optimal number of predictor variables to try at each split:
 ```{r}
